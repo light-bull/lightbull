@@ -1,0 +1,16 @@
+# Port for REST API.
+listen: 8080
+
+# Network interface for ethernet connection.
+# Remove or set to "" to disable ethernet configuration by controller.
+ethernet: "eth0"
+
+# Directories for configuration and temporary files
+directories:
+    config: "/tmp/lightbull"
+    tmp: "/var/cache/lightbull"
+
+leds:
+    brightnessCap: 80
+    spiMHz: 1
+    fps: 25
