@@ -11,9 +11,9 @@ type DataType interface {
 	// Set the data
 	Set(interface{})
 
-	// ToJSON returns the data serialized as JSON
-	ToJSON() []byte
+	// MarshalJSON returns the data serialized as JSON (it implements the `json.Marshaller` interface)
+	MarshalJSON() ([]byte, error)
 
-	// UpdateFromJSON loads the data from the JSON string
-	UpdateFromJSON([]byte) error
+	// UnmarshalJSON loads the data from the JSON string (it implements the `json.Unmarshaller` interface)
+	UnmarshalJSON(data []byte) error
 }

@@ -15,6 +15,7 @@ type Effect interface {
 	// Update decides about the changes that are caused by the effect for a certain timestep.
 	Update(nanoseconds int64)
 
+	// Parameters returns the list of paremeters
 	Parameters() [](*parameters.Parameter)
 }
 

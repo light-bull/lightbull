@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"sync"
 
@@ -89,20 +90,33 @@ func (show *Show) Save() error {
 	show.mux.Lock()
 	defer show.mux.Unlock()
 
-	data, err := show.MarshalJSON()
+	//data, err := show.MarshalJSON()
+	data, err := json.MarshalIndent(show, "", "    ")
 	if err != nil {
 		log.Print("Error while serializing JSON for show")
 		return err
 	}
 
-	file := path.Join(viper.GetString("directories.config"), "shows", show.ID.String()+".json")
-	err = ioutil.WriteFile(file, data, 0644)
+	err = ioutil.WriteFile(show.diskFile(), data, 0644)
 	if err != nil {
 		log.Print("Failed to write show to the config file: " + err.Error())
 		return err
 	}
 
 	return nil
+}
+
+// delete deletes the show configuration from disk
+// FIXME: move somewhere else
+func (show *Show) delete() {
+	show.mux.Lock()
+	defer show.mux.Unlock()
+
+	os.Remove(show.diskFile())
+}
+
+func (show *Show) diskFile() string {
+	return path.Join(viper.GetString("directories.config"), "shows", show.ID.String()+".json")
 }
 
 // Visuals returns a list of all visuals

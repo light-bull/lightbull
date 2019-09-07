@@ -8,8 +8,8 @@ import (
 
 // Parameter is an effect parameter
 type Parameter struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID   uuid.UUID
+	Name string
 
 	// current and default value of paramter, they have to be the same DataType
 	cur DataType
@@ -19,13 +19,18 @@ type Parameter struct {
 type parameterJSON struct {
 	ID      uuid.UUID `json:"id"`
 	Name    string    `json:"name"`
-	Current []byte    `json:"current"`
-	Default []byte    `json:"default"`
+	Current DataType  `json:"current"`
+	Default DataType  `json:"default"`
 }
 
 // MarshalJSON is there to implement the `json.Marshaller` interface.
 func (parameter *Parameter) MarshalJSON() ([]byte, error) {
-	data := parameterJSON{ID: parameter.ID, Name: parameter.Name, Current: parameter.cur.ToJSON(), Default: parameter.def.ToJSON()}
+	data := parameterJSON{
+		ID:      parameter.ID,
+		Name:    parameter.Name,
+		Current: parameter.cur,
+		Default: parameter.def,
+	}
 	return json.Marshal(data)
 }
 
@@ -52,15 +57,19 @@ func (parameter *Parameter) Get() interface{} {
 	return parameter.cur.Get()
 }
 
+/*
 // ToJSON returns the currently set value as JSON
 func (parameter *Parameter) ToJSON() []byte {
-	return parameter.cur.ToJSON()
+	// TODO: error handling?
+	data, _ := parameter.cur.MarshalJSON()
+	return data
 }
 
 // UpdateFromJSON sets a new value from the JSON data
 func (parameter *Parameter) UpdateFromJSON(data []byte) error {
 	return parameter.cur.UpdateFromJSON(data)
 }
+*/
 
 // SetDefault sets the current value as default
 func (parameter *Parameter) SetDefault() {

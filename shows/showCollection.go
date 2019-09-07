@@ -26,6 +26,11 @@ func NewShowCollection() *ShowCollection {
 	return &showCollection
 }
 
+// Shows returns a list of loaded shows
+func (showCollection *ShowCollection) Shows() []*Show {
+	return showCollection.shows
+}
+
 // NewShow creates a new show
 func (showCollection *ShowCollection) NewShow(name string) (*Show, error) {
 	showCollection.mux.Lock()
@@ -46,9 +51,21 @@ func (showCollection *ShowCollection) NewShow(name string) (*Show, error) {
 	return show, nil
 }
 
-// Shows returns a list of loaded shows
-func (showCollection *ShowCollection) Shows() []*Show {
-	return showCollection.shows
+// DeleteShow creates a new show
+func (showCollection *ShowCollection) DeleteShow(show *Show) {
+	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	// delete from disk
+	show.delete()
+
+	// delete from list
+	for pos, cur := range showCollection.shows {
+		if show.ID == cur.ID {
+			showCollection.shows = append(showCollection.shows[:pos], showCollection.shows[pos+1:]...)
+			break
+		}
+	}
 }
 
 // FindShow returns the show with the given ID or nil for malformed and non-existing IDs
@@ -59,16 +76,17 @@ func (showCollection *ShowCollection) FindShow(idStr string) *Show {
 		return nil
 	}
 
-	// search for show
+	// Locking
 	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	// search for show
 	for _, show := range showCollection.shows {
 		if show.ID == id {
-			showCollection.mux.Unlock()
 			return show
 		}
 	}
 
-	showCollection.mux.Unlock()
 	return nil
 }
 
@@ -80,18 +98,19 @@ func (showCollection *ShowCollection) FindVisual(idStr string) (*Show, *Visual) 
 		return nil, nil
 	}
 
-	// iterate over shows and visuals
+	// Locking
 	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	// iterate over shows and visuals
 	for _, show := range showCollection.shows {
 		for _, visual := range show.Visuals() {
 			if visual.ID == id {
-				showCollection.mux.Unlock()
 				return show, visual
 			}
 		}
 	}
 
-	showCollection.mux.Unlock()
 	return nil, nil
 }
 
@@ -103,32 +122,33 @@ func (showCollection *ShowCollection) FindGroup(idStr string) (*Show, *Visual, *
 		return nil, nil, nil
 	}
 
-	// iterate over shows and visuals
+	// Locking
 	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	// iterate over shows and visuals
 	for _, show := range showCollection.shows {
 		for _, visual := range show.Visuals() {
 			for _, group := range visual.Groups() {
 				if group.ID == id {
-					showCollection.mux.Unlock()
 					return show, visual, group
 				}
 			}
 		}
 	}
 
-	showCollection.mux.Unlock()
 	return nil, nil, nil
 }
 
 // loadShows loads the stored shows from the configuration files
 func (showCollection *ShowCollection) loadShows() {
 	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
 
 	dir := path.Join(viper.GetString("directories.config"), "shows")
 	files, _ := filepath.Glob(dir + "/*.json")
 	if files == nil {
 		log.Print("No shows loaded.")
-		showCollection.mux.Unlock()
 		return
 	}
 
@@ -141,6 +161,4 @@ func (showCollection *ShowCollection) loadShows() {
 
 		showCollection.shows = append(showCollection.shows, show)
 	}
-
-	showCollection.mux.Unlock()
 }

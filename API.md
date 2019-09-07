@@ -30,21 +30,41 @@ Supported methods: GET, POST, PUT
 
     curl -X GET 'http://localhost:8080/api/shows'
 
+### Create show
+
+    curl -X POST -d '{"name":"Show Name"}' 'http://localhost:8080/api/shows'
+
 ### Get show details
 
     curl -X GET 'http://localhost:8080/api/shows/4f7f6045-bd3f-4fa3-9790-008df78571c1'
 
-### Create show
-
-    curl -X POST -d '{"name":"Show Name"}' 'http://localhost:8080/api/shows
-
 ### Update show
 
-    curl -X PUT -d '{"name":"New Show Name", "id":"4f7f6045-bd3f-4fa3-9790-008df78571c1"}' 'http://localhost:8080/api/shows'
+    curl -X POST -d '{"name":"New Show Name"}' 'http://localhost:8080/api/shows/4f7f6045-bd3f-4fa3-9790-008df78571c1'
+
+### Delete show
+
+    curl -X DELETE 'http://localhost:8080/api/shows/4f7f6045-bd3f-4fa3-9790-008df78571c1'
 
 ## Visuals
 
+### Create visual
+
+    curl -X POST -d '{"show":"4f7f6045-bd3f-4fa3-9790-008df78571c1", "name":"Visual Name"}' 'http://localhost:8080/api/visuals'
+
+### Get visual details
+
+    curl -X GET 'http://localhost:8080/api/visuals/61370850-aa63-44f7-a9d9-49b6292763b8'
+
 TODO: GET should return all related data (visual meta data, groups, effects, parameters)
+
+### Update visual
+
+TODO
+
+### Delete visual
+
+TODO
 
 ## Parameters
 
