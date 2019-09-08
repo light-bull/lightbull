@@ -38,7 +38,6 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		writeJSON(&w, data)
 	} else if r.Method == "POST" {
 		// get data from request
-		// FIXME: maybe use showJSON here?
 		type format struct {
 			Name string `json:"name"`
 		}
@@ -80,7 +79,6 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 		writeJSON(&w, show)
 	} else if r.Method == "POST" {
 		// get data from request
-		// FIXME: maybe use showJSON here?
 		type format struct {
 			Name string `json:"name"`
 		}
@@ -149,7 +147,7 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	_, visual := api.shows.FindVisual(id)
+	show, visual := api.shows.FindVisual(id)
 
 	if visual == nil {
 		http.Error(w, "Invalid or unknown ID", http.StatusBadRequest)
@@ -157,10 +155,12 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
+		// FIXME: only return show and visual data, no groups/effects/...
 		writeJSON(&w, visual)
 	} else if r.Method == "POST" {
 	} else if r.Method == "DELETE" {
-
+		show.DeleteVisual(visual)
+		show.Save() // TODO: do this somewhere else
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

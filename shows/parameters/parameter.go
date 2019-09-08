@@ -23,9 +23,10 @@ type Parameter struct {
 }
 
 type parameterJSON struct {
-	ID           uuid.UUID `json:"id"`
-	Key          string    `json:"key"`
-	DefaultValue DataType  `json:"defaultvalue"`
+	ID      uuid.UUID `json:"id"`
+	Key     string    `json:"key"`
+	Default DataType  `json:"default"`
+	Current DataType  `json:"current"`
 }
 
 // NewParameter returns a new parameter of the specified data type (or nil)
@@ -49,9 +50,10 @@ func NewParameter(key string, datatype string, name string) *Parameter {
 // MarshalJSON is there to implement the `json.Marshaller` interface.
 func (parameter *Parameter) MarshalJSON() ([]byte, error) {
 	data := parameterJSON{
-		ID:           parameter.ID,
-		Key:          parameter.Key,
-		DefaultValue: parameter.def,
+		ID:      parameter.ID,
+		Key:     parameter.Key,
+		Current: parameter.cur,
+		Default: parameter.def,
 	}
 	return json.Marshal(data)
 }
@@ -59,9 +61,10 @@ func (parameter *Parameter) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON is there to implement the `json.Unmarshaller` interface.
 func (parameter *Parameter) UnmarshalJSON(data []byte) error {
 	type format struct {
-		ID           uuid.UUID        `json:"id"`
-		Key          string           `json:"key"`
-		DefaultValue *json.RawMessage `json:"defaultvalue"`
+		ID      uuid.UUID        `json:"id"`
+		Key     string           `json:"key"`
+		Current *json.RawMessage `json:"current"`
+		Default *json.RawMessage `json:"default"`
 	}
 
 	dataMap := format{}
@@ -74,9 +77,18 @@ func (parameter *Parameter) UnmarshalJSON(data []byte) error {
 	parameter.ID = dataMap.ID
 	parameter.Key = dataMap.Key
 
-	err = parameter.def.UnmarshalJSON(*dataMap.DefaultValue)
-	if err != nil {
-		return err
+	if dataMap.Current != nil {
+		err = parameter.cur.UnmarshalJSON(*dataMap.Current)
+		if err != nil {
+			return err
+		}
+	}
+
+	if dataMap.Default != nil {
+		err = parameter.def.UnmarshalJSON(*dataMap.Default)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

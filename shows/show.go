@@ -139,6 +139,19 @@ func (show *Show) NewVisual(name string) *Visual {
 	return visual
 }
 
+// DeleteVisual deletes the visual from the show.
+func (show *Show) DeleteVisual(visual *Visual) {
+	show.mux.Lock()
+	defer show.mux.Unlock()
+
+	for pos, cur := range show.visuals {
+		if visual.ID == cur.ID {
+			show.visuals = append(show.visuals[:pos], show.visuals[pos+1:]...)
+			break
+		}
+	}
+}
+
 // CurrentVisual returns the visual that is currently played
 func (show *Show) CurrentVisual() *Visual {
 	return show.currentVisual
