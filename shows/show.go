@@ -16,8 +16,9 @@ import (
 
 // Show is a collection of visuals
 type Show struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID       uuid.UUID
+	Name     string
+	Favorite bool
 
 	visuals       []*Visual
 	currentVisual *Visual
@@ -27,28 +28,28 @@ type Show struct {
 
 // showJSON is the format for a serialized JSON configuration
 type showJSON struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	Favorite bool      `json:"favorite"`
 
 	Visuals []*Visual `json:"visuals"`
 }
 
 // newShow creates a new show with the given name. It is meant to be called from ShowCollection.
-func newShow(name string) (*Show, error) {
+func newShow(name string, favorite bool) (*Show, error) {
 	if name == "" {
 		return nil, errors.New("Invalid show name")
 	}
 
-	show := Show{ID: uuid.New(), Name: name} // FIXME: uuid is randomly generated, so there could be a collission
+	show := Show{ID: uuid.New(), Name: name, Favorite: favorite} // FIXME: uuid is randomly generated, so there could be a collission
 
 	return &show, nil
 }
 
 // MarshalJSON is there to implement the `json.Marshaller` interface.
 func (show *Show) MarshalJSON() ([]byte, error) {
-	data := showJSON{ID: show.ID, Name: show.Name, Visuals: show.visuals}
+	data := showJSON{ID: show.ID, Name: show.Name, Favorite: show.Favorite, Visuals: show.visuals}
 	return json.Marshal(data)
-	//return json.MarshalIndent(data, "", "    ")
 }
 
 // UnmarshalJSON is there to implement the `json.Unmarshaller` interface.
@@ -62,6 +63,7 @@ func (show *Show) UnmarshalJSON(data []byte) error {
 
 	show.ID = input.ID
 	show.Name = input.Name
+	show.Favorite = input.Favorite
 	show.visuals = input.Visuals
 
 	// TODO: input validation

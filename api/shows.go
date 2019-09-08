@@ -25,21 +25,24 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		shows := api.shows.Shows()
 
 		type format struct {
-			ID   uuid.UUID `json:"id"`
-			Name string    `json:"name"`
+			ID       uuid.UUID `json:"id"`
+			Name     string    `json:"name"`
+			Favorite bool      `json:"favorite"`
 		}
 		data := make([]format, len(shows))
 
 		for i, show := range shows {
 			data[i].ID = show.ID
 			data[i].Name = show.Name
+			data[i].Favorite = show.Favorite
 		}
 
 		writeJSON(&w, data)
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
-			Name string `json:"name"`
+			Name     string `json:"name"`
+			Favorite bool   `json:"favorite"`
 		}
 		data := format{}
 		err := parseJSON(&w, r, &data)
@@ -48,11 +51,14 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// create new show
-		show, err := api.shows.NewShow(data.Name)
+		show, err := api.shows.NewShow(data.Name, data.Favorite)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		show.Favorite = data.Favorite
+		show.Save()
 
 		// return show data, especially the ID may be interesting
 		writeJSON(&w, show)
@@ -81,15 +87,17 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 		}
 
 		type showFormat struct {
-			ID      uuid.UUID      `json:"id"`
-			Name    string         `json:"name"`
-			Visuals []visualFormat `json:"visuals"`
+			ID       uuid.UUID      `json:"id"`
+			Name     string         `json:"name"`
+			Favorite bool           `json:"favorite"`
+			Visuals  []visualFormat `json:"visuals"`
 		}
 
 		data := showFormat{
-			ID:      show.ID,
-			Name:    show.Name,
-			Visuals: make([]visualFormat, len(show.Visuals())),
+			ID:       show.ID,
+			Name:     show.Name,
+			Favorite: show.Favorite,
+			Visuals:  make([]visualFormat, len(show.Visuals())),
 		}
 		for i, visual := range show.Visuals() {
 			data.Visuals[i].ID = visual.ID
@@ -100,7 +108,8 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
-			Name string `json:"name"`
+			Name     string `json:"name"`
+			Favorite bool   `json:"favorite"`
 		}
 		data := format{}
 		err := parseJSON(&w, r, &data)
@@ -108,13 +117,13 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// TODO: move validation and (async) save to shows.Show
-		if data.Name == "" {
-			http.Error(w, "Invalid name", http.StatusBadRequest)
-			return
+		if data.Name != "" {
+			show.Name = data.Name
 		}
 
-		show.Name = data.Name
+		show.Favorite = data.Favorite
+
+		// TODO: move (async) save to shows.Show
 		show.Save()
 	} else if r.Method == "DELETE" {
 		api.shows.DeleteShow(show)

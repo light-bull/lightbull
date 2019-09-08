@@ -33,11 +33,11 @@ func (showCollection *ShowCollection) Shows() []*Show {
 }
 
 // NewShow creates a new show
-func (showCollection *ShowCollection) NewShow(name string) (*Show, error) {
+func (showCollection *ShowCollection) NewShow(name string, favorite bool) (*Show, error) {
 	showCollection.mux.Lock()
 	defer showCollection.mux.Unlock()
 
-	show, err := newShow(name)
+	show, err := newShow(name, favorite)
 	if err != nil {
 		return nil, err
 	}
