@@ -23,7 +23,7 @@ type colorDataJSON struct {
 func NewColor() *ColorType {
 	color := ColorType{}
 
-	color.value.G = 255 // FIXME: remove
+	color.value.B = 255 // FIXME: remove
 
 	return &color
 }

@@ -136,6 +136,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		group.SetEffect(effects.SingleColor)
 		api.shows.SetCurrentShow(show)
 		show.SetCurrentVisual(visual)
+		show.Save()
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

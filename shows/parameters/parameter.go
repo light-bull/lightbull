@@ -8,7 +8,13 @@ import (
 
 // Parameter is an effect parameter
 type Parameter struct {
-	ID   uuid.UUID
+	// ID is the globally unique UUID for this parameter
+	ID uuid.UUID
+
+	// Key is the id that is unique for a single effect
+	Key string
+
+	// Name is the nice name for the UI
 	Name string
 
 	// current and default value of paramter, they have to be the same DataType
@@ -17,17 +23,17 @@ type Parameter struct {
 }
 
 type parameterJSON struct {
-	ID      uuid.UUID `json:"id"`
-	Name    string    `json:"name"`
-	Current DataType  `json:"current"`
-	Default DataType  `json:"default"`
+	ID           uuid.UUID `json:"id"`
+	Key          string    `json:"key"`
+	DefaultValue DataType  `json:"defaultvalue"`
 }
 
 // NewParameter returns a new parameter of the specified data type (or nil)
-func NewParameter(name string, datatype string) *Parameter {
+func NewParameter(key string, datatype string, name string) *Parameter {
 	parameter := Parameter{}
 
 	parameter.ID = uuid.New() // TODO: make sure that unique
+	parameter.Key = key
 	parameter.Name = name
 
 	if datatype == Color {
@@ -43,28 +49,35 @@ func NewParameter(name string, datatype string) *Parameter {
 // MarshalJSON is there to implement the `json.Marshaller` interface.
 func (parameter *Parameter) MarshalJSON() ([]byte, error) {
 	data := parameterJSON{
-		ID:      parameter.ID,
-		Name:    parameter.Name,
-		Current: parameter.cur,
-		Default: parameter.def,
+		ID:           parameter.ID,
+		Key:          parameter.Key,
+		DefaultValue: parameter.def,
 	}
 	return json.Marshal(data)
 }
 
 // UnmarshalJSON is there to implement the `json.Unmarshaller` interface.
 func (parameter *Parameter) UnmarshalJSON(data []byte) error {
-	input := parameterJSON{}
+	type format struct {
+		ID           uuid.UUID        `json:"id"`
+		Key          string           `json:"key"`
+		DefaultValue *json.RawMessage `json:"defaultvalue"`
+	}
 
-	err := json.Unmarshal(data, &input)
+	dataMap := format{}
+
+	err := json.Unmarshal(data, &dataMap)
 	if err != nil {
 		return err
 	}
 
-	parameter.ID = input.ID
-	parameter.Name = input.Name
-	// FIXME: set cur and def
+	parameter.ID = dataMap.ID
+	parameter.Key = dataMap.Key
 
-	// TODO: input validation
+	err = parameter.def.UnmarshalJSON(*dataMap.DefaultValue)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

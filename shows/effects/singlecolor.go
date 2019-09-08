@@ -16,7 +16,7 @@ type SingleColorEffect struct {
 func NewSingleColorEffect() *SingleColorEffect {
 	singlecolor := SingleColorEffect{}
 
-	singlecolor.color = parameters.NewParameter("Color", parameters.Color)
+	singlecolor.color = parameters.NewParameter("color", parameters.Color, "Color")
 
 	return &singlecolor
 }
@@ -41,9 +41,9 @@ func (e *SingleColorEffect) Update(hw *hardware.Hardware, parts []string, nanose
 }
 
 // Parameters returns the list of paremeters
-func (e *SingleColorEffect) Parameters() [](*parameters.Parameter) {
-	// TODO: do once?
-	parameters := make([](*parameters.Parameter), 1)
-	parameters[0] = e.color
-	return parameters
+func (e *SingleColorEffect) Parameters() []*parameters.Parameter {
+	// todo: maybe only once?
+	data := make([]*parameters.Parameter, 1)
+	data[0] = e.color
+	return data
 }

@@ -1,6 +1,9 @@
 package effects
 
 import (
+	"encoding/json"
+	"errors"
+
 	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/shows/parameters"
 )
@@ -17,7 +20,10 @@ type Effect interface {
 	Update(hw *hardware.Hardware, parts []string, nanoseconds int64)
 
 	// Parameters returns the list of paremeters
-	Parameters() [](*parameters.Parameter)
+	Parameters() []*parameters.Parameter
+
+	// setParameterStore allows to overwrite the parameter store of an effect (needed for deserialization)
+	//setParameterStore(parameters *parameters.ParameterStore)
 }
 
 // NewEffect returns a new effect of specified effect type (or nil)
@@ -30,9 +36,11 @@ func NewEffect(effecttype string) Effect {
 
 // EffectJSON is the JSON format for effects
 type EffectJSON struct {
-	Type       string                    `json:"type"`
-	Name       string                    `json:"name"`
-	Parameters [](*parameters.Parameter) `json:"parameters"`
+	Type       string                  `json:"type"`
+	Parameters []*parameters.Parameter `json:"parameters"`
+
+	// only for deserialization
+	effect *Effect
 }
 
 // EffectToJSON converts an effect and parameters to EffectJSON.
@@ -40,7 +48,6 @@ func EffectToJSON(effect Effect) *EffectJSON {
 	output := EffectJSON{}
 
 	output.Type = effect.Type()
-	output.Name = effect.Name()
 	output.Parameters = effect.Parameters()
 
 	return &output
@@ -48,6 +55,58 @@ func EffectToJSON(effect Effect) *EffectJSON {
 
 // EffectFromJSON creates an effect (an object that fulfills the effect interface) from EffectJSON.
 func EffectFromJSON(data *EffectJSON) *Effect {
-	// TODO
+	// The deserialization already happened in EffectJSON.UnmarshallJSON, lets just use the result
+	return data.effect
+}
+
+// UnmarshalJSON deserializes an effect and parameter store
+func (effectjson *EffectJSON) UnmarshalJSON(data []byte) error {
+	// get the type first
+	type format struct {
+		Type       string             `json:"type"`
+		Parameters []*json.RawMessage `json:"parameters"`
+	}
+
+	dataMap := format{}
+
+	err := json.Unmarshal(data, &dataMap)
+	if err != nil {
+		return err
+	}
+
+	// we know the type, so just create the corresponding effect
+	effect := NewEffect(dataMap.Type)
+	if effect == nil {
+		return errors.New("Invalid effect type")
+	}
+
+	// use the key to lookup the parameter in the effect. then call unmarshal on the parameter with the concrete datatypes
+	for _, parameterRaw := range dataMap.Parameters {
+		// parse the data of one parameter. we are only interested in the key
+		type parameterFormat struct {
+			Key string `json:"key"`
+		}
+		parameterMap := parameterFormat{}
+		err := json.Unmarshal(*parameterRaw, &parameterMap)
+		if err != nil {
+			return err
+		}
+
+		// search for parameter
+		// TODO: optimize to not use for loop here?
+		for _, parameter := range effect.Parameters() {
+			if parameter.Key == parameterMap.Key {
+				err = parameter.UnmarshalJSON(*parameterRaw)
+				if err != nil {
+					return err
+				}
+
+				break
+			}
+		}
+	}
+
+	// we are done
+	effectjson.effect = &effect
 	return nil
 }

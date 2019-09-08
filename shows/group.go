@@ -35,8 +35,12 @@ func newGroup() *Group {
 
 // MarshalJSON is there to implement the `json.Marshaller` interface.
 func (group *Group) MarshalJSON() ([]byte, error) {
-	//data := groupJSON{ID: group.ID, Parts: group.parts, Effect: effects.EffectToJSON(group.Effect)}
 	data := groupJSON{ID: group.ID, Parts: group.parts}
+
+	if group.Effect != nil {
+		data.Effect = effects.EffectToJSON(group.Effect)
+	}
+
 	return json.Marshal(data)
 }
 
@@ -51,12 +55,11 @@ func (group *Group) UnmarshalJSON(data []byte) error {
 
 	group.ID = input.ID
 	group.parts = input.Parts
-	/*
-		effect := effects.EffectFromJSON(input.Effect)
-		if effect != nil {
-			group.Effect = *effect
-		}
-	*/
+
+	effect := effects.EffectFromJSON(input.Effect)
+	if effect != nil {
+		group.Effect = *effect
+	}
 
 	// TODO: input validation
 
@@ -89,5 +92,7 @@ func (group *Group) SetEffect(effecttype string) error {
 
 // Update decides about the changes that are caused by the group/effect for a certain timestep.
 func (group *Group) Update(hw *hardware.Hardware, nanoseconds int64) {
-	group.Effect.Update(hw, group.parts, nanoseconds)
+	if group.Effect != nil {
+		group.Effect.Update(hw, group.parts, nanoseconds)
+	}
 }
