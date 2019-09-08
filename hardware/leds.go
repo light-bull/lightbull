@@ -16,17 +16,18 @@ import (
 	"periph.io/x/periph/host"
 )
 
-var maxColorSum = 765 * viper.GetInt("leds.brightnessCap") / 100
-
 // LED is used to interact with the LED stripes. First, add the single parts and then run Init.
 type LED struct {
-	spi    spi.PortCloser
-	apa102 display.Drawer
-	image  *image.NRGBA
+	spi         spi.PortCloser
+	apa102      display.Drawer
+	apa102Dummy bool
+	image       *image.NRGBA
 
 	parts      []string
 	partLedMap map[string][]int
 	maxLedID   int
+
+	maxColorSum int
 }
 
 // NewLED creates a new LED struct. After that, `AddPart` needs to be called and then `Init`.
@@ -72,6 +73,7 @@ func (led *LED) Init() error {
 	if err != nil {
 		log.Print("Failed to find a SPI port, printing at the console:\n")
 		led.apa102 = screen.New(numLeds)
+		led.apa102Dummy = true
 	} else {
 		// SPI config
 		led.spi = spiConn
@@ -85,10 +87,15 @@ func (led *LED) Init() error {
 			return err
 		}
 		led.apa102 = apa102Dev
+		led.apa102Dummy = false
 	}
 
 	// initialize image memory
 	led.image = image.NewNRGBA(led.apa102.Bounds())
+
+	// set brightness cap
+	led.maxColorSum = (3 * 255) * viper.GetInt("leds.brightnessCap") / 100
+
 	return nil
 }
 
@@ -118,8 +125,8 @@ func (led *LED) SetColor(part string, pos int, r byte, g byte, b byte) {
 
 	// filter colors that would need to much power
 	sum := int(r) + int(g) + int(b)
-	if sum > maxColorSum {
-		diff := sum - maxColorSum
+	if sum > led.maxColorSum {
+		diff := sum - led.maxColorSum
 		r -= byte(diff * int(r) / sum)
 		g -= byte(diff * int(g) / sum)
 		b -= byte(diff * int(b) / sum)
@@ -144,6 +151,11 @@ func (led *LED) SetColorAll(r byte, g byte, b byte) {
 
 // Update makes color changes visible
 func (led *LED) Update() error {
+	if led.apa102Dummy == true {
+		// TODO: config option to draw in dummy mode
+		return nil
+	}
+
 	return led.apa102.Draw(led.apa102.Bounds(), led.image, image.Point{})
 }
 

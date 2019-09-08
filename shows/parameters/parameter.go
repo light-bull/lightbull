@@ -23,6 +23,23 @@ type parameterJSON struct {
 	Default DataType  `json:"default"`
 }
 
+// NewParameter returns a new parameter of the specified data type (or nil)
+func NewParameter(name string, datatype string) *Parameter {
+	parameter := Parameter{}
+
+	parameter.ID = uuid.New() // TODO: make sure that unique
+	parameter.Name = name
+
+	if datatype == Color {
+		parameter.cur = NewColor()
+		parameter.def = NewColor()
+	} else {
+		return nil
+	}
+
+	return &parameter
+}
+
 // MarshalJSON is there to implement the `json.Marshaller` interface.
 func (parameter *Parameter) MarshalJSON() ([]byte, error) {
 	data := parameterJSON{

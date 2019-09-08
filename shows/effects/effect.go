@@ -1,6 +1,7 @@
 package effects
 
 import (
+	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/shows/parameters"
 )
 
@@ -13,10 +14,18 @@ type Effect interface {
 	Name() string
 
 	// Update decides about the changes that are caused by the effect for a certain timestep.
-	Update(nanoseconds int64)
+	Update(hw *hardware.Hardware, parts []string, nanoseconds int64)
 
 	// Parameters returns the list of paremeters
 	Parameters() [](*parameters.Parameter)
+}
+
+// NewEffect returns a new effect of specified effect type (or nil)
+func NewEffect(effecttype string) Effect {
+	if effecttype == SingleColor {
+		return NewSingleColorEffect()
+	}
+	return nil
 }
 
 // EffectJSON is the JSON format for effects

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/light-bull/lightbull/shows/effects"
 )
 
 func (api *API) initShows(router *mux.Router) {
@@ -127,7 +128,14 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// add visual to show
-		show.NewVisual(data.Name)
+		visual := show.NewVisual(data.Name)
+
+		// testing things
+		group := visual.NewGroup()
+		group.SetParts(api.hw.Led.GetParts())
+		group.SetEffect(effects.SingleColor)
+		api.shows.SetCurrentShow(show)
+		show.SetCurrentVisual(visual)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

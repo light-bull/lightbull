@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/light-bull/lightbull/hardware"
 	"github.com/spf13/viper"
 )
 
@@ -18,7 +19,8 @@ type Show struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`
 
-	visuals []*Visual
+	visuals       []*Visual
+	currentVisual *Visual
 
 	mux sync.Mutex
 }
@@ -135,4 +137,25 @@ func (show *Show) NewVisual(name string) *Visual {
 	show.Save() // TODO: asynchronly and throttled save show
 
 	return visual
+}
+
+// CurrentVisual returns the visual that is currently played
+func (show *Show) CurrentVisual() *Visual {
+	return show.currentVisual
+}
+
+// SetCurrentVisual sets the visual that is currently played
+func (show *Show) SetCurrentVisual(visual *Visual) {
+	show.mux.Lock()
+	defer show.mux.Unlock()
+
+	show.currentVisual = visual
+}
+
+// Update decides about the changes that are caused by the current visual for a certain timestep.
+func (show *Show) Update(hw *hardware.Hardware, nanoseconds int64) {
+	visual := show.CurrentVisual()
+	if visual != nil {
+		visual.Update(hw, nanoseconds)
+	}
 }

@@ -18,6 +18,8 @@ var testCmd = &cobra.Command{
 	Short: "Test the LEDs",
 	Long:  `Run different test programs for the LED stripe`,
 	Run: func(cmd *cobra.Command, args []string) {
+		readConfigFile()
+
 		hardware, err := hardware.New()
 		if err != nil {
 			log.Fatal(err)

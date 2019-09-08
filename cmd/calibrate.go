@@ -26,6 +26,8 @@ var calibrateCmd = &cobra.Command{
 	Long: `Interactively turn single LEDs on to find out which LED is in which LED part.
 	The part definition in ignored here and the original/raw LED IDs are used.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		readConfigFile()
+
 		// Init LEDs
 		led := hardware.NewLED()
 		led.AddPart("calibrate", 0, numberLeds)

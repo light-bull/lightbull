@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-// Color is a datatype for RGB values
-type Color struct {
+// ColorType is a datatype for RGB values
+type ColorType struct {
 	value color.NRGBA
 
 	mux sync.Mutex
@@ -19,23 +19,32 @@ type colorDataJSON struct {
 	B uint8 `json:"b"`
 }
 
+// NewColor returns a new data of type color
+func NewColor() *ColorType {
+	color := ColorType{}
+
+	color.value.G = 255 // FIXME: remove
+
+	return &color
+}
+
 // Type returns "color"
-func (c *Color) Type() string {
+func (c *ColorType) Type() string {
 	return "color"
 }
 
 // Get the color
-func (c *Color) Get() interface{} {
+func (c *ColorType) Get() interface{} {
 	return c.value
 }
 
 // Set the color
-func (c *Color) Set(new interface{}) {
+func (c *ColorType) Set(new interface{}) {
 	c.value = new.(color.NRGBA)
 }
 
 // MarshalJSON returns the data serialized as JSON
-func (c *Color) MarshalJSON() ([]byte, error) {
+func (c *ColorType) MarshalJSON() ([]byte, error) {
 	c.mux.Lock()
 	data := colorDataJSON{
 		R: c.value.R,
@@ -48,7 +57,7 @@ func (c *Color) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON loads the data from the JSON string
-func (c *Color) UnmarshalJSON(data []byte) error {
+func (c *ColorType) UnmarshalJSON(data []byte) error {
 	input := colorDataJSON{}
 
 	err := json.Unmarshal(data, &input)

@@ -12,7 +12,8 @@ import (
 
 // ShowCollection is the collection of all available shows
 type ShowCollection struct {
-	shows []*Show
+	shows       []*Show
+	currentShow *Show
 
 	mux sync.Mutex
 }
@@ -66,6 +67,19 @@ func (showCollection *ShowCollection) DeleteShow(show *Show) {
 			break
 		}
 	}
+}
+
+// CurrentShow returns the show that is currently played
+func (showCollection *ShowCollection) CurrentShow() *Show {
+	return showCollection.currentShow
+}
+
+// SetCurrentShow set the show that is currently played
+func (showCollection *ShowCollection) SetCurrentShow(show *Show) {
+	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	showCollection.currentShow = show
 }
 
 // FindShow returns the show with the given ID or nil for malformed and non-existing IDs

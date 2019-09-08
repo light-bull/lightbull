@@ -1,9 +1,12 @@
 package lightbull
 
 import (
+	"time"
+
 	"github.com/light-bull/lightbull/api"
 	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/shows"
+	"github.com/spf13/viper"
 )
 
 // Lightbull contains all software components (`hardware`, `api`, `shows`).
@@ -32,7 +35,7 @@ func New() (*Lightbull, error) {
 	lightbull.Shows = shows.NewShowCollection()
 
 	// run update loop for modes and hardware
-	//go lightbull.UpdateLoop()
+	go lightbull.UpdateLoop()
 
 	// run api server
 	lightbull.API, err = api.New(lightbull.Hardware, lightbull.Shows)
@@ -44,18 +47,19 @@ func New() (*Lightbull, error) {
 }
 
 // UpdateLoop runs the current mode program and writes changes to the hardware in regular intervals
-/*
-func (lightbull *lightbull) UpdateLoop() {
+func (lightbull *Lightbull) UpdateLoop() {
 	lastUpdate := time.Now()
-	sleepTime := time.Duration(1000000000.0 / viper.GetFloat64("lightbull.fps"))
+	sleepTime := time.Duration(1000000000.0 / viper.GetFloat64("leds.fps"))
 	for {
 		time.Sleep(sleepTime)
 
 		nanoseconds := time.Since(lastUpdate).Nanoseconds()
 		lastUpdate = time.Now()
+		show := lightbull.Shows.CurrentShow()
+		if show != nil {
+			show.Update(lightbull.Hardware, nanoseconds)
+		}
 
-		lightbull.Modes.Update(nanoseconds)
 		lightbull.Hardware.Update()
 	}
 }
-*/

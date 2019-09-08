@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/light-bull/lightbull/hardware"
 )
 
 // Visual is a collection of effects that are applied to LED parts and bundled parameters.
@@ -72,4 +73,11 @@ func (visual *Visual) NewGroup() *Group {
 // Groups returns the list of groups.
 func (visual *Visual) Groups() []*Group {
 	return visual.groups
+}
+
+// Update decides about the changes that are caused by the visual for a certain timestep.
+func (visual *Visual) Update(hw *hardware.Hardware, nanoseconds int64) {
+	for _, group := range visual.groups {
+		group.Update(hw, nanoseconds)
+	}
 }

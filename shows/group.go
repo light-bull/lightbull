@@ -2,9 +2,11 @@ package shows
 
 import (
 	"encoding/json"
+	"errors"
 
-	"github.com/light-bull/lightbull/shows/effects"
 	"github.com/google/uuid"
+	"github.com/light-bull/lightbull/hardware"
+	"github.com/light-bull/lightbull/shows/effects"
 )
 
 // Group maps an effect type to a group of LED parts
@@ -67,8 +69,25 @@ func (group *Group) Parts() []string {
 }
 
 // SetParts changes the LED parts that are configured for this effect.
-func (group *Group) SetParts([]string) error {
+func (group *Group) SetParts(parts []string) error {
+	group.parts = parts
 	// TODO
 	// TODO: check that part is only configured for one effect in a visual
 	return nil
+}
+
+// SetEffect changes the effect type for this group
+func (group *Group) SetEffect(effecttype string) error {
+	effect := effects.NewEffect(effecttype)
+	if effect == nil {
+		return errors.New("Unknown effect")
+	}
+
+	group.Effect = effect
+	return nil
+}
+
+// Update decides about the changes that are caused by the group/effect for a certain timestep.
+func (group *Group) Update(hw *hardware.Hardware, nanoseconds int64) {
+	group.Effect.Update(hw, group.parts, nanoseconds)
 }
