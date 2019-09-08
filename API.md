@@ -64,7 +64,7 @@ TODO
 
 ### Delete visual
 
-TODO
+    curl -X DELETE 'http://localhost:8080/api/shows/61370850-aa63-44f7-a9d9-49b6292763b8'
 
 ## Parameters
 

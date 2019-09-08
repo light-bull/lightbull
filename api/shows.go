@@ -75,8 +75,28 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		// FIXME: only return show and visual data, no groups/effects/...
-		writeJSON(&w, show)
+		type visualFormat struct {
+			ID   uuid.UUID `json:"id"`
+			Name string    `json:"name"`
+		}
+
+		type showFormat struct {
+			ID      uuid.UUID      `json:"id"`
+			Name    string         `json:"name"`
+			Visuals []visualFormat `json:"visuals"`
+		}
+
+		data := showFormat{
+			ID:      show.ID,
+			Name:    show.Name,
+			Visuals: make([]visualFormat, len(show.Visuals())),
+		}
+		for i, visual := range show.Visuals() {
+			data.Visuals[i].ID = visual.ID
+			data.Visuals[i].Name = visual.Name
+		}
+
+		writeJSON(&w, data)
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
@@ -155,9 +175,9 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		// FIXME: only return show and visual data, no groups/effects/...
 		writeJSON(&w, visual)
 	} else if r.Method == "POST" {
+		// TODO
 	} else if r.Method == "DELETE" {
 		show.DeleteVisual(visual)
 		show.Save() // TODO: do this somewhere else
