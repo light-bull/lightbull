@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -15,6 +16,8 @@ func (api *API) initShows(router *mux.Router) {
 	router.HandleFunc("/api/visuals/{id}", api.handleVisualDetails)
 
 	router.HandleFunc("/api/groups", api.handleGroups)
+
+	router.HandleFunc("/api/parameters/{id}", api.handleParameterDetails)
 }
 
 func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
@@ -231,7 +234,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get visual
-		_, visual := api.shows.FindVisual(data.Visual)
+		show, visual := api.shows.FindVisual(data.Visual)
 		if visual == nil {
 			http.Error(w, "Invalid or unknown visual ID", http.StatusBadRequest)
 			return
@@ -242,6 +245,51 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
 		}
+
+		// TODO: move (async) save to shows.Show
+		show.Save()
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
+
+func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	// get parameter
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	_, _, _, parameter := api.shows.FindParameter(id)
+
+	if r.Method == "GET" {
+		writeJSON(&w, parameter)
+	} else if r.Method == "POST" {
+		// get data from request
+		type format struct {
+			Current *json.RawMessage `json:"current"`
+			Default *json.RawMessage `json:"default"`
+		}
+		data := format{}
+		err := parseJSON(&w, r, &data)
+		if err != nil {
+			return
+		}
+
+		if data.Current != nil {
+			err = parameter.SetFromJSON(*data.Current)
+			if err != nil {
+				http.Error(w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
+			}
+		}
+
+		if data.Default != nil {
+			err = parameter.SetDefaultFromJSON(*data.Default)
+			if err != nil {
+				http.Error(w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
+			}
+		}
+
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

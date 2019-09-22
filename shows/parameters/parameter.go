@@ -78,14 +78,14 @@ func (parameter *Parameter) UnmarshalJSON(data []byte) error {
 	parameter.Key = dataMap.Key
 
 	if dataMap.Current != nil {
-		err = parameter.cur.UnmarshalJSON(*dataMap.Current)
+		err = parameter.SetFromJSON(*dataMap.Current)
 		if err != nil {
 			return err
 		}
 	}
 
 	if dataMap.Default != nil {
-		err = parameter.def.UnmarshalJSON(*dataMap.Default)
+		err = parameter.SetDefaultFromJSON(*dataMap.Default)
 		if err != nil {
 			return err
 		}
@@ -99,26 +99,32 @@ func (parameter *Parameter) Get() interface{} {
 	return parameter.cur.Get()
 }
 
-/*
-// ToJSON returns the currently set value as JSON
-func (parameter *Parameter) ToJSON() []byte {
-	// TODO: error handling?
-	data, _ := parameter.cur.MarshalJSON()
-	return data
+// SetFromJSON sets a new value from the JSON data
+func (parameter *Parameter) SetFromJSON(data []byte) error {
+	err := parameter.cur.UnmarshalJSON(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// UpdateFromJSON sets a new value from the JSON data
-func (parameter *Parameter) UpdateFromJSON(data []byte) error {
-	return parameter.cur.UpdateFromJSON(data)
+// SetDefaultFromJSON sets a new default value from the JSON data
+func (parameter *Parameter) SetDefaultFromJSON(data []byte) error {
+	err := parameter.def.UnmarshalJSON(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
-*/
 
 // SetDefault sets the current value as default
+// TODO: remove?
 func (parameter *Parameter) SetDefault() {
 	parameter.def.Set(parameter.cur.Get())
 }
 
 // RestoreDefault sets the current value back to the default value
+// TODO: remove?
 func (parameter *Parameter) RestoreDefault() {
 	parameter.cur.Set(parameter.def.Get())
 }

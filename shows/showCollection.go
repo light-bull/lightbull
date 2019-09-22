@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/light-bull/lightbull/shows/parameters"
 	"github.com/spf13/viper"
 )
 
@@ -126,6 +127,60 @@ func (showCollection *ShowCollection) FindVisual(idStr string) (*Show, *Visual) 
 	}
 
 	return nil, nil
+}
+
+// FindGroup returns the group with the given ID and the beloning show and visual or nil for malformed and non-existing IDs
+func (showCollection *ShowCollection) FindGroup(idStr string) (*Show, *Visual, *Group) {
+	// Parse UUID
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return nil, nil, nil
+	}
+
+	// Locking
+	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	// iterate over shows and visuals
+	for _, show := range showCollection.shows {
+		for _, visual := range show.Visuals() {
+			for _, group := range visual.Groups() {
+				if group.ID == id {
+					return show, visual, group
+				}
+			}
+		}
+	}
+
+	return nil, nil, nil
+}
+
+// FindParameter returns the parameter with the given ID and the belonging show, visual and group or nil for malformed and non-existing IDs
+func (showCollection *ShowCollection) FindParameter(idStr string) (*Show, *Visual, *Group, *parameters.Parameter) {
+	// Parse UUID
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return nil, nil, nil, nil
+	}
+
+	// Locking
+	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	// iterate over shows, visuals and groups
+	for _, show := range showCollection.shows {
+		for _, visual := range show.Visuals() {
+			for _, group := range visual.Groups() {
+				for _, parameter := range group.Effect.Parameters() {
+					if parameter.ID == id {
+						return show, visual, group, parameter
+					}
+				}
+			}
+		}
+	}
+
+	return nil, nil, nil, nil
 }
 
 // loadShows loads the stored shows from the configuration files

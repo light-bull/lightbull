@@ -91,4 +91,15 @@ TODO
 
 ### Get parameter
 
-TODO: GET and POST for values
+    curl -X GET 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf'
+
+### Update parameter
+
+    curl -X POST -d '{"current":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
+    curl -X POST -d '{"default":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
+
+    The current and default value can also be set in the same request.
+
+### Restore default
+
+    TODO
