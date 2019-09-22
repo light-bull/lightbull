@@ -260,7 +260,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	_, _, _, parameter := api.shows.FindParameter(id)
+	show, _, _, parameter := api.shows.FindParameter(id)
 
 	if r.Method == "GET" {
 		writeJSON(&w, parameter)
@@ -288,6 +288,9 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				http.Error(w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
 			}
+
+			// TODO: move (async) save to shows.Show
+			show.Save()
 		}
 
 	} else {
