@@ -59,6 +59,11 @@ func (visual *Visual) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Groups returns the list of groups.
+func (visual *Visual) Groups() []*Group {
+	return visual.groups
+}
+
 // NewGroup adds a new group with an effect to the visual.
 func (visual *Visual) NewGroup(parts []string, effect string) (*Group, error) {
 	group, err := newGroup(parts, effect)
@@ -73,9 +78,17 @@ func (visual *Visual) NewGroup(parts []string, effect string) (*Group, error) {
 	return group, nil
 }
 
-// Groups returns the list of groups.
-func (visual *Visual) Groups() []*Group {
-	return visual.groups
+// DeleteGroup adds a new group with an effect to the visual.
+func (visual *Visual) DeleteGroup(group *Group) {
+	visual.mux.Lock()
+	defer visual.mux.Unlock()
+
+	for pos, cur := range visual.groups {
+		if group.ID == cur.ID {
+			visual.groups = append(visual.groups[:pos], visual.groups[pos+1:]...)
+			break
+		}
+	}
 }
 
 // Update decides about the changes that are caused by the visual for a certain timestep.

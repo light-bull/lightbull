@@ -44,7 +44,7 @@ dns     | IP address of DNS server
 
 ### Update show
 
-    curl -X POST -d '{"name":"New Show Name", "favorite": true}' 'http://localhost:8080/api/shows/4f7f6045-bd3f-4fa3-9790-008df78571c1'
+    curl -X PUT -d '{"name":"New Show Name", "favorite": true}' 'http://localhost:8080/api/shows/4f7f6045-bd3f-4fa3-9790-008df78571c1'
 
 ### Delete show
 
@@ -62,7 +62,7 @@ dns     | IP address of DNS server
 
 ### Update visual
 
-TODO
+    curl -X PUT -d '{"name":"New Visual Name"}' 'http://localhost:8080/api/visuals/61370850-aa63-44f7-a9d9-49b6292763b8'
 
 ### Delete visual
 
@@ -72,7 +72,6 @@ TODO
 
     curl -X GET 'http://localhost:8080/api/visuals'
 
-
 ## Groups
 
 ### Add group
@@ -81,11 +80,13 @@ TODO
 
 ### Update group
 
-    TODO
+    curl -X PUT -d '{"parts": ["horn_left"], "effect":"othereffect"}' 'http://localhost:8080/api/groups/e8a6b7c4-d2fe-4701-9d73-fe2e8377d0fb'
+
+    It's possible to set only "parts" or "effect".
 
 ### Delete group
 
-    TODO
+    curl -X DELETE 'http://localhost:8080/api/groups/e8a6b7c4-d2fe-4701-9d73-fe2e8377d0fb'
 
 ## Parameters
 
@@ -95,11 +96,31 @@ TODO
 
 ### Update parameter
 
-    curl -X POST -d '{"current":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
-    curl -X POST -d '{"default":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
+    curl -X PUT -d '{"current":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
+    curl -X PUT -d '{"default":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
 
     The current and default value can also be set in the same request.
 
 ### Restore default
 
     TODO
+
+## Current show and visual
+
+### Get current show and visual
+
+    curl -X GET 'http://localhost:8080/api/current'
+
+### Set current show or visual
+
+    curl -X PUT -d '{"show":"4f7f6045-bd3f-4fa3-9790-008df78571c1"}' 'http://localhost:8080/api/current'
+    curl -X PUT -d '{"visual":"61370850-aa63-44f7-a9d9-49b6292763b8"}' 'http://localhost:8080/api/current'
+    curl -X PUT -d '{"show":"4f7f6045-bd3f-4fa3-9790-008df78571c1","visual":"61370850-aa63-44f7-a9d9-49b6292763b8"}' 'http://localhost:8080/api/current'
+
+    When the show is changed and no visual is specified, the current visual is set to null (but only if the value changes). If only a visual is specified, it must belong to the current show.
+
+### Set blank
+
+    curl -X PUT -d '{"blank":"true"}' 'http://localhost:8080/api/current'
+
+    Sets the visual to null which means that the LEDs are off. The current show is not changed.

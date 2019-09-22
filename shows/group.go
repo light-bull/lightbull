@@ -91,6 +91,12 @@ func (group *Group) SetParts(parts []string) error {
 
 // SetEffect changes the effect type for this group
 func (group *Group) SetEffect(effecttype string) error {
+	// no change -> no nothing
+	if effecttype == group.Effect.Type() {
+		return nil
+	}
+
+	// set effect
 	effect := effects.NewEffect(effecttype)
 	if effect == nil {
 		return errors.New("Unknown effect")
