@@ -1,12 +1,12 @@
-package api
+package ws
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/light-bull/lightbull/events"
 )
@@ -36,14 +36,18 @@ type WebsocketClient struct {
 
 	events chan *events.Event
 	send   chan []byte
+
+	id uuid.UUID
 }
 
-func newWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub) *WebsocketClient {
+// NewWebsocketClient initalizes a new websocket client and runs the handlers
+func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub) *WebsocketClient {
 	client := WebsocketClient{
 		eventhub: eventhub,
 		conn:     conn,
 		events:   make(chan *events.Event, 256),
 		send:     make(chan []byte, 256),
+		id:       uuid.New(), // TODO: make unique
 	}
 
 	go client.readPump()
@@ -55,11 +59,6 @@ func newWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub) *Websoc
 // EventChan is there to implement the EventClient interface
 func (client *WebsocketClient) EventChan() chan *events.Event {
 	return client.events
-}
-
-func (client *WebsocketClient) handleRequest(request []byte) {
-	fmt.Println(request)
-	// TODO
 }
 
 // readPump reads the incoming messages on the websocket connection
@@ -124,7 +123,7 @@ func (client *WebsocketClient) writePump() {
 			}
 			data, err := json.Marshal(event)
 			if err != nil {
-				log.Print("Failed to serialize event for websocket")
+				log.Println("Failed to serialize event for websocket")
 			}
 			client.send <- data
 		case message, ok := <-client.send:

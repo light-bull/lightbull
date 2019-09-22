@@ -6,6 +6,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+
+	"github.com/light-bull/lightbull/api/ws"
 )
 
 func (api *API) initWebsocket(router *mux.Router) {
@@ -28,6 +30,6 @@ func (api *API) handleWebsocketClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := newWebsocketClient(conn, api.eventhub)
+	client := ws.NewWebsocketClient(conn, api.eventhub)
 	api.eventhub.RegisterClient(client)
 }
