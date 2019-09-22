@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/shows/effects"
 )
 
@@ -17,12 +18,18 @@ func (api *API) handleConfig(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		type format struct {
-			Parts   []string          `json:"parts"`
-			Effects map[string]string `json:"effects"`
+			Parts    []string          `json:"parts"`
+			Effects  map[string]string `json:"effects"`
+			Features []string          `json:"features"`
 		}
+
 		data := format{
 			Parts:   api.hw.Led.GetParts(),
 			Effects: effects.GetEffects(),
+		}
+
+		if api.hw.System.EthernetConfig().Mode != hardware.EthUnmanaged {
+			data.Features = append(data.Features, "ethernet")
 		}
 
 		writeJSON(&w, data)
