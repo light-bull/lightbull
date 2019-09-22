@@ -56,8 +56,6 @@ Supported methods: GET, POST, PUT
 
     curl -X GET 'http://localhost:8080/api/visuals/61370850-aa63-44f7-a9d9-49b6292763b8'
 
-TODO: GET should return all related data (visual meta data, groups, effects, parameters)
-
 ### Update visual
 
 TODO
@@ -65,6 +63,10 @@ TODO
 ### Delete visual
 
     curl -X DELETE 'http://localhost:8080/api/shows/61370850-aa63-44f7-a9d9-49b6292763b8'
+
+### Get all visual names (of all shows)
+
+    curl -X GET 'http://localhost:8080/api/visuals'
 
 ## Parameters
 

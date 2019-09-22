@@ -128,32 +128,6 @@ func (showCollection *ShowCollection) FindVisual(idStr string) (*Show, *Visual) 
 	return nil, nil
 }
 
-// FindGroup returns the group with the given ID and the beloning show and visual or nil for malformed and non-existing IDs
-func (showCollection *ShowCollection) FindGroup(idStr string) (*Show, *Visual, *Group) {
-	// Parse UUID
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		return nil, nil, nil
-	}
-
-	// Locking
-	showCollection.mux.Lock()
-	defer showCollection.mux.Unlock()
-
-	// iterate over shows and visuals
-	for _, show := range showCollection.shows {
-		for _, visual := range show.Visuals() {
-			for _, group := range visual.Groups() {
-				if group.ID == id {
-					return show, visual, group
-				}
-			}
-		}
-	}
-
-	return nil, nil, nil
-}
-
 // loadShows loads the stored shows from the configuration files
 func (showCollection *ShowCollection) loadShows() {
 	showCollection.mux.Lock()

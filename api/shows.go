@@ -14,8 +14,6 @@ func (api *API) initShows(router *mux.Router) {
 
 	router.HandleFunc("/api/visuals", api.handleVisuals)
 	router.HandleFunc("/api/visuals/{id}", api.handleVisualDetails)
-
-	router.HandleFunc("/api/groups/{id}", api.handleGroup)
 }
 
 func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +133,26 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	if r.Method == "POST" {
+	if r.Method == "GET" {
+		type visualFormat struct {
+			Show uuid.UUID `json:"show"`
+			ID   uuid.UUID `json:"id"`
+			Name string    `json:"name"`
+		}
+
+		var result []visualFormat
+		for _, show := range api.shows.Shows() {
+			for _, visual := range show.Visuals() {
+				visual := visualFormat{
+					Show: show.ID,
+					ID:   visual.ID,
+					Name: visual.Name,
+				}
+				result = append(result, visual)
+			}
+		}
+		writeJSON(&w, result)
+	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
 			Name string `json:"name"`
@@ -190,29 +207,6 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "DELETE" {
 		show.DeleteVisual(visual)
 		show.Save() // TODO: do this somewhere else
-	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-	}
-}
-
-func (api *API) handleGroup(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-
-	// get show
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	_, _, group := api.shows.FindGroup(id)
-
-	if group == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusBadRequest)
-		return
-	}
-
-	if r.Method == "GET" {
-		writeJSON(&w, group)
-	} else if r.Method == "POST" {
-		// TODO
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
