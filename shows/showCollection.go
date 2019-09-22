@@ -1,6 +1,7 @@
 package shows
 
 import (
+	"errors"
 	"log"
 	"path"
 	"path/filepath"
@@ -59,6 +60,7 @@ func (showCollection *ShowCollection) DeleteShow(show *Show) {
 	defer showCollection.mux.Unlock()
 
 	// delete from disk
+	// TODO: trigger delete based on events
 	show.delete()
 
 	// delete from list
@@ -75,12 +77,58 @@ func (showCollection *ShowCollection) CurrentShow() *Show {
 	return showCollection.currentShow
 }
 
-// SetCurrentShow set the show that is currently played
-func (showCollection *ShowCollection) SetCurrentShow(show *Show) {
+// GetCurrentVisual returns the current visual and show
+func (showCollection *ShowCollection) GetCurrentVisual() (show *Show, visual *Visual) {
+	if showCollection.currentShow != nil {
+		return showCollection.currentShow, showCollection.currentShow.CurrentVisual()
+	}
+	return nil, nil
+}
+
+// SetCurrentVisual set the show and visual that is currently played.
+// If the show is `nil`, the visual needs to belong to the current show.
+// If the show is changed and no visual is given, the current visual is always set to `nil`.
+func (showCollection *ShowCollection) SetCurrentVisual(show *Show, visual *Visual) error {
 	showCollection.mux.Lock()
 	defer showCollection.mux.Unlock()
 
-	showCollection.currentShow = show
+	if show != nil && visual != nil {
+		// show and visual given -> check that visual belongs to show
+		if show.hasVisual(visual) == false {
+			return errors.New("Visual does not belong to show")
+		}
+
+		show.setCurrentVisual(visual)
+		showCollection.currentShow = show
+	} else if show != nil && visual == nil {
+		// only show given -> set show and no current visual
+		if showCollection.currentShow != show {
+			show.setCurrentVisual(nil)
+			showCollection.currentShow = show
+		}
+	} else if show == nil && visual != nil {
+		// only visual -> check that visual belongs to current show (and that there is a current show)
+		if showCollection.currentShow == nil {
+			return errors.New("No current show set, cannot set a new visual")
+		} else if showCollection.currentShow.hasVisual(visual) == false {
+			return errors.New("Visual does not belong to the current show")
+		}
+
+		showCollection.currentShow.setCurrentVisual(visual)
+	} else {
+		return errors.New("Visual or show need to be specified")
+	}
+	return nil
+}
+
+// ClearCurrentVisual resets the current visual to `nil` so that nothing is played
+func (showCollection *ShowCollection) ClearCurrentVisual() {
+	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	if showCollection.currentShow != nil {
+		showCollection.currentShow.setCurrentVisual(nil)
+	}
 }
 
 // FindShow returns the show with the given ID or nil for malformed and non-existing IDs

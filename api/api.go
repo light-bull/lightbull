@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 
+	"github.com/light-bull/lightbull/events"
 	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/shows"
 	_ "github.com/light-bull/lightbull/statik" // needed for statik
@@ -17,13 +18,19 @@ import (
 
 // API implements the REST API
 type API struct {
-	hw    *hardware.Hardware
-	shows *shows.ShowCollection
+	hw       *hardware.Hardware
+	shows    *shows.ShowCollection
+	eventhub *events.EventHub
 }
 
 // New starts the listener for the REST API
-func New(hw *hardware.Hardware, shows *shows.ShowCollection) (*API, error) {
-	api := API{hw: hw, shows: shows}
+func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.EventHub) (*API, error) {
+	api := API{
+		hw:       hw,
+		shows:    shows,
+		eventhub: eventhub,
+	}
+
 	router := mux.NewRouter()
 
 	// API

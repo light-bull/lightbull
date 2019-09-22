@@ -159,12 +159,25 @@ func (show *Show) CurrentVisual() *Visual {
 	return show.currentVisual
 }
 
-// SetCurrentVisual sets the visual that is currently played
-func (show *Show) SetCurrentVisual(visual *Visual) {
+// setCurrentVisual sets the visual that is currently played
+func (show *Show) setCurrentVisual(visual *Visual) {
 	show.mux.Lock()
 	defer show.mux.Unlock()
 
 	show.currentVisual = visual
+}
+
+// hasVisual checks if the visual belongs to the show
+func (show *Show) hasVisual(visual *Visual) bool {
+	show.mux.Lock()
+	defer show.mux.Unlock()
+
+	for _, cur := range show.visuals {
+		if cur == visual {
+			return true
+		}
+	}
+	return false
 }
 
 // Update decides about the changes that are caused by the current visual for a certain timestep.

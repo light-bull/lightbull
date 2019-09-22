@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/light-bull/lightbull/api"
+	"github.com/light-bull/lightbull/events"
 	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/shows"
 	"github.com/spf13/viper"
@@ -15,6 +16,7 @@ type Lightbull struct {
 	Hardware *hardware.Hardware
 	Shows    *shows.ShowCollection
 	API      *api.API
+	EventHub *events.EventHub
 }
 
 // New prepares the whole lightbull controller for use: it initializes the hardware, starts the
@@ -24,6 +26,13 @@ func New() (*Lightbull, error) {
 	var err error
 
 	// TODO: create directories that are needed
+
+	// initialize event hub
+	lightbull.EventHub = events.NewEventHub()
+
+	// FIXME: remove me
+	tmp := events.NewEventDebugClient()
+	lightbull.EventHub.RegisterClient(tmp)
 
 	// initialize hardware and run update loop
 	lightbull.Hardware, err = hardware.New()
@@ -38,7 +47,7 @@ func New() (*Lightbull, error) {
 	go lightbull.UpdateLoop()
 
 	// run api server
-	lightbull.API, err = api.New(lightbull.Hardware, lightbull.Shows)
+	lightbull.API, err = api.New(lightbull.Hardware, lightbull.Shows, lightbull.EventHub)
 	if err != nil {
 		return nil, err
 	}
