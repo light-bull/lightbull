@@ -34,6 +34,7 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.Ev
 	router := mux.NewRouter()
 
 	// API
+	api.initAuth(router)
 	api.initConfig(router)
 	api.initSystem(router)
 	api.initShows(router)
@@ -53,7 +54,7 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.Ev
 	})
 
 	// Run server
-	port := viper.GetInt("listen")
+	port := viper.GetInt("api.listen")
 	if port <= 0 || port > 65535 {
 		return nil, errors.New("Invalid port to listen on")
 	}

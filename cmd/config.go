@@ -14,7 +14,8 @@ func readConfigFile() {
 	viper.AddConfigPath("/etc/lightbull/")
 	viper.AddConfigPath(".")
 
-	viper.SetDefault("listen", 8080)
+	viper.SetDefault("api.listen", 8080)
+	viper.SetDefault("api.authentication", "")
 
 	viper.SetDefault("ethernet", "")
 
