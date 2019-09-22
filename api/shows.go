@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/light-bull/lightbull/shows/effects"
 )
 
 func (api *API) initShows(router *mux.Router) {
@@ -14,6 +13,8 @@ func (api *API) initShows(router *mux.Router) {
 
 	router.HandleFunc("/api/visuals", api.handleVisuals)
 	router.HandleFunc("/api/visuals/{id}", api.handleVisualDetails)
+
+	router.HandleFunc("/api/groups", api.handleGroups)
 }
 
 func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
@@ -172,15 +173,16 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// add visual to show
-		visual := show.NewVisual(data.Name)
+		show.NewVisual(data.Name)
+		//visual := show.NewVisual(data.Name)
 
-		// testing things
-		group := visual.NewGroup()
-		group.SetParts(api.hw.Led.GetParts())
-		group.SetEffect(effects.SingleColor)
-		api.shows.SetCurrentShow(show)
-		show.SetCurrentVisual(visual)
-		show.Save()
+		// FIXME: testing things
+		// group := visual.NewGroup()
+		// group.SetParts(api.hw.Led.GetParts())
+		// group.SetEffect(effects.SingleColor)
+		// api.shows.SetCurrentShow(show)
+		// show.SetCurrentVisual(visual)
+		// show.Save()
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -207,6 +209,39 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "DELETE" {
 		show.DeleteVisual(visual)
 		show.Save() // TODO: do this somewhere else
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
+
+func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	if r.Method == "POST" {
+		// get data from request
+		type format struct {
+			Visual string   `json:"visual"`
+			Parts  []string `json:"parts"`
+			Effect string   `json:"effect"`
+		}
+		data := format{}
+		err := parseJSON(&w, r, &data)
+		if err != nil {
+			return
+		}
+
+		// get visual
+		_, visual := api.shows.FindVisual(data.Visual)
+		if visual == nil {
+			http.Error(w, "Invalid or unknown visual ID", http.StatusBadRequest)
+			return
+		}
+
+		// add group
+		_, err = visual.NewGroup(data.Parts, data.Effect)
+		if err != nil {
+			http.Error(w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
+		}
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

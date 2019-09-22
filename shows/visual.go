@@ -60,14 +60,17 @@ func (visual *Visual) UnmarshalJSON(data []byte) error {
 }
 
 // NewGroup adds a new group with an effect to the visual.
-func (visual *Visual) NewGroup() *Group {
-	group := newGroup()
+func (visual *Visual) NewGroup(parts []string, effect string) (*Group, error) {
+	group, err := newGroup(parts, effect)
+	if err != nil {
+		return nil, err
+	}
 
 	visual.mux.Lock()
 	visual.groups = append(visual.groups, group)
 	visual.mux.Unlock()
 
-	return group
+	return group, nil
 }
 
 // Groups returns the list of groups.

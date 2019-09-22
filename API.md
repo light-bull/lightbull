@@ -1,14 +1,20 @@
+# Config
+
+curl -X GET 'http://localhost:8080/api/config'
+
 # System
 
 ## Shutdown
-
-Supported methods: POST
 
     curl -X POST http://localhost:8080/api/shutdown
 
 ## Ethernet configuration
 
-Supported methods: GET, POST
+### Get configuration
+
+    curl -X GET 'http://localhost:8080/api/ethernet'
+
+### Change configuration
 
     curl -X POST -d '{"mode":"static","ip":"10.0.0.10/24","gateway":"10.0.0.1","dns":"8.8.8.8"}' 'http://localhost:8080/api/ethernet'
 
@@ -24,8 +30,6 @@ dns     | IP address of DNS server
 
 ## Shows
 
-Supported methods: GET, POST, PUT
-
 ### Get all shows
 
     curl -X GET 'http://localhost:8080/api/shows'
@@ -40,7 +44,7 @@ Supported methods: GET, POST, PUT
 
 ### Update show
 
-    curl -X POST -d '{"name":"New Show Name"}' 'http://localhost:8080/api/shows/4f7f6045-bd3f-4fa3-9790-008df78571c1'
+    curl -X POST -d '{"name":"New Show Name", "favorite": true}' 'http://localhost:8080/api/shows/4f7f6045-bd3f-4fa3-9790-008df78571c1'
 
 ### Delete show
 
@@ -68,6 +72,23 @@ TODO
 
     curl -X GET 'http://localhost:8080/api/visuals'
 
+
+## Groups
+
+### Add group
+
+    curl -X POST -d '{"visual":"61370850-aa63-44f7-a9d9-49b6292763b8", "parts":["horn_left", "horn_right"], "effect":"singlecolor"}' 'http://localhost:8080/api/groups'
+
+### Update group
+
+    TODO
+
+### Delete group
+
+    TODO
+
 ## Parameters
+
+### Get parameter
 
 TODO: GET and POST for values

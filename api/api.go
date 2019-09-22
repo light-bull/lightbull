@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -28,11 +27,9 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection) (*API, error) {
 	router := mux.NewRouter()
 
 	// API
+	api.initConfig(router)
 	api.initSystem(router)
 	api.initShows(router)
-
-	// TODO
-	router.HandleFunc("/api/hardware", api.handleHardware)
 
 	// Frontend
 	statikFS, err := fs.New()
@@ -55,23 +52,4 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection) (*API, error) {
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 
 	return &api, nil
-}
-
-func (api *API) handleHardware(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-
-	if r.Method == "GET" {
-		type hardwareResponse struct {
-			Led []string `json:"led"`
-		}
-
-		response := hardwareResponse{
-			Led: api.hw.Led.GetParts(),
-		}
-
-		jsonResult, _ := json.Marshal(response)
-		w.Write(jsonResult)
-	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-	}
 }

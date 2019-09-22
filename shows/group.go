@@ -16,6 +16,8 @@ type Group struct {
 	Effect effects.Effect `json:"-"`
 
 	parts []string
+
+	// FIXME: mux!
 }
 
 type groupJSON struct {
@@ -25,12 +27,20 @@ type groupJSON struct {
 }
 
 // newGroup creates a new group. It is meant to be called from Visual.
-func newGroup() *Group {
+func newGroup(parts []string, effect string) (*Group, error) {
 	group := Group{ID: uuid.New()} // FIXME: uuid is randomly generated, so there could be a collission
 
-	// TODO: create effect
+	err := group.SetParts(parts)
+	if err != nil {
+		return nil, err
+	}
 
-	return &group
+	err = group.SetEffect(effect)
+	if err != nil {
+		return nil, err
+	}
+
+	return &group, nil
 }
 
 // MarshalJSON is there to implement the `json.Marshaller` interface.
