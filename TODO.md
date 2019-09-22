@@ -1,4 +1,6 @@
 * Websockets
+    * Shorten payload output
+    * Handle incoming messages
 * Async save to disk
 * Authentication
 

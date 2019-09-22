@@ -4,31 +4,31 @@ import "fmt"
 
 // EventClient is an interface that describes a client that can subscribe to events
 type EventClient interface {
-	SendChan() chan *Event
+	EventChan() chan *Event
 }
 
 // TODO: remove me
 type EventDebugClient struct {
-	send chan *Event
+	event chan *Event
 }
 
 func NewEventDebugClient() *EventDebugClient {
 	client := EventDebugClient{}
 
-	client.send = make(chan *Event)
+	client.event = make(chan *Event)
 	go client.run()
 
 	return &client
 }
 
-func (client *EventDebugClient) SendChan() chan *Event {
-	return client.send
+func (client *EventDebugClient) EventChan() chan *Event {
+	return client.event
 }
 
 func (client *EventDebugClient) run() {
 	for {
 		select {
-		case event := <-client.send:
+		case event := <-client.event:
 			fmt.Println(event.Topic)
 			fmt.Println(event.Payload)
 		}

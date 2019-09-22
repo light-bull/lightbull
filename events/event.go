@@ -51,13 +51,13 @@ type EventMetaInfo struct {
 // Event is an event that is sent through the event hub
 type Event struct {
 	// Topic of the event (like show_added)
-	Topic string
+	Topic string `json:"topic"`
 
 	// The payload, usually this is the changed objects
-	Payload interface{}
+	Payload interface{} `json:"payload"`
 
 	// Meta info about the event (which client triggered it?)
-	Meta *EventMetaInfo
+	Meta *EventMetaInfo `json:"meta"`
 }
 
 // NewEvent creates a new event
