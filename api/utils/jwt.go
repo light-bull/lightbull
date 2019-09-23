@@ -69,7 +69,7 @@ func (jwtmanager *JWTManager) New() (string, error) {
 // Check validates the given JSON Web Token
 func (jwtmanager *JWTManager) Check(tokenString string) bool {
 	// parse the token
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("Invalid signing method")
@@ -79,7 +79,7 @@ func (jwtmanager *JWTManager) Check(tokenString string) bool {
 		return jwtmanager.key, nil
 	})
 
-	if !token.Valid {
+	if err != nil || !token.Valid {
 		return false
 	}
 

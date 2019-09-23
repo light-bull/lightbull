@@ -1,4 +1,4 @@
-package ws
+package utils
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/events"
 )
 
@@ -30,29 +29,38 @@ const (
 
 var newline = []byte{'\n'}
 
+// WebsocketHandler is the handler for incoming websocket messages
+type WebsocketHandler func(ws *WebsocketClient, payload *json.RawMessage)
+
 // WebsocketClient is one client connected via websockets
 type WebsocketClient struct {
 	eventhub *events.EventHub
 	conn     *websocket.Conn
-	jwt      *utils.JWTManager
+	jwt      *JWTManager
 
 	events chan *events.Event
 	send   chan []byte
 
-	id            uuid.UUID
-	authenticated bool
+	handlers map[string]WebsocketHandler
+
+	ID            uuid.UUID // TODO
+	Authenticated bool
 }
 
 // NewWebsocketClient initalizes a new websocket client and runs the handlers
-func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub, jwtmanager *utils.JWTManager) *WebsocketClient {
+func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub, jwtmanager *JWTManager) *WebsocketClient {
 	client := WebsocketClient{
-		eventhub:      eventhub,
-		conn:          conn,
-		jwt:           jwtmanager,
-		events:        make(chan *events.Event, 256),
-		send:          make(chan []byte, 256),
-		id:            uuid.New(), // TODO: make unique
-		authenticated: false,
+		eventhub: eventhub,
+		conn:     conn,
+		jwt:      jwtmanager,
+
+		events: make(chan *events.Event, 256),
+		send:   make(chan []byte, 256),
+
+		handlers: make(map[string]WebsocketHandler),
+
+		ID:            uuid.New(), // TODO: make unique
+		Authenticated: false,
 	}
 
 	go client.readPump()
@@ -66,6 +74,53 @@ func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub, jwtmana
 // EventChan is there to implement the EventClient interface
 func (client *WebsocketClient) EventChan() chan *events.Event {
 	return client.events
+}
+
+// AddHandler adds a handler for an incoming message with the specified topic
+func (client *WebsocketClient) AddHandler(topic string, handler WebsocketHandler) {
+	client.handlers[topic] = handler
+}
+
+// SendMessage sends a message over the websocket connection
+func (client *WebsocketClient) SendMessage(topic string, payload interface{}) {
+	client.events <- events.NewEvent(topic, payload)
+}
+
+// SendError sends an error back over the websocket connection
+func (client *WebsocketClient) SendError(msg string) {
+	type errorFormat struct {
+		Msg string `json:"msg"`
+	}
+
+	client.events <- events.NewEvent("error", errorFormat{Msg: msg})
+}
+
+// Close closes the websocket connection
+func (client *WebsocketClient) Close() {
+	client.conn.Close()
+}
+
+// handleRequest is called after a messages was received over websockets
+func (client *WebsocketClient) handleRequest(request []byte) {
+	// deserialize topic
+	type format struct {
+		Topic   string           `json:"topic"`
+		Payload *json.RawMessage `json:"payload"`
+	}
+	data := format{}
+	err := json.Unmarshal(request, &data)
+	if err != nil {
+		client.SendError("Invalid data format")
+		return
+	}
+
+	// run handler
+	handler, ok := client.handlers[data.Topic]
+	if ok {
+		handler(client, data.Payload)
+	} else {
+		client.SendError("Unknown message topic")
+	}
 }
 
 // readPump reads the incoming messages on the websocket connection
@@ -96,7 +151,7 @@ func (client *WebsocketClient) readPump() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNoStatusReceived) {
 				log.Println("Websocket error: " + err.Error())
 			}
-			break
+			return
 		}
 
 		// split messages at newline
