@@ -6,6 +6,7 @@ import (
 	"github.com/light-bull/lightbull/api"
 	"github.com/light-bull/lightbull/events"
 	"github.com/light-bull/lightbull/hardware"
+	"github.com/light-bull/lightbull/persistence"
 	"github.com/light-bull/lightbull/shows"
 	"github.com/spf13/viper"
 )
@@ -13,10 +14,11 @@ import (
 // Lightbull contains all software components (`hardware`, `api`, `shows`).
 // This basically is the glue code between the other packages.
 type Lightbull struct {
-	Hardware *hardware.Hardware
-	Shows    *shows.ShowCollection
-	API      *api.API
-	EventHub *events.EventHub
+	Hardware    *hardware.Hardware
+	Shows       *shows.ShowCollection
+	API         *api.API
+	EventHub    *events.EventHub
+	Persistence *persistence.Persistence
 }
 
 // New prepares the whole lightbull controller for use: it initializes the hardware, starts the
@@ -25,14 +27,18 @@ func New() (*Lightbull, error) {
 	lightbull := Lightbull{}
 	var err error
 
-	// TODO: create directories that are needed
-
 	// initialize event hub
 	lightbull.EventHub = events.NewEventHub()
 
 	// FIXME: remove me
 	tmp := events.NewEventDebugClient()
 	lightbull.EventHub.RegisterClient(tmp)
+
+	// initialize persistence
+	lightbull.Persistence, err = persistence.NewPersistence()
+	if err != nil {
+		return nil, err
+	}
 
 	// initialize hardware and run update loop
 	lightbull.Hardware, err = hardware.New()
@@ -47,7 +53,7 @@ func New() (*Lightbull, error) {
 	go lightbull.UpdateLoop()
 
 	// run api server
-	lightbull.API, err = api.New(lightbull.Hardware, lightbull.Shows, lightbull.EventHub)
+	lightbull.API, err = api.New(lightbull.Hardware, lightbull.Shows, lightbull.EventHub, lightbull.Persistence)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,9 @@ func (api *API) initConfig(router *mux.Router) {
 }
 
 func (api *API) handleConfig(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	if r.Method == "GET" {

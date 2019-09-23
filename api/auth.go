@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -29,10 +30,16 @@ func (api *API) handleAuth(w http.ResponseWriter, r *http.Request) {
 		// check password
 		hash := viper.GetString("api.authentication")
 		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(data.Password)) == nil {
+			jwt, err := api.newJwt()
+			if err != nil {
+				log.Println("Cannot create JWT: " + err.Error())
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+			}
+
 			type outFormat struct {
 				Jwt string `json:"jwt"`
 			}
-			result := outFormat{Jwt: "dummy-jwt-token"} // TODO
+			result := outFormat{Jwt: jwt}
 
 			writeJSON(&w, result)
 		} else {

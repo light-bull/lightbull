@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/light-bull/lightbull/hardware"
 	"github.com/gorilla/mux"
+	"github.com/light-bull/lightbull/hardware"
 )
 
 func (api *API) initSystem(router *mux.Router) {
@@ -13,6 +13,9 @@ func (api *API) initSystem(router *mux.Router) {
 }
 
 func (api *API) handleShutdown(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	if r.Method == "POST" {
@@ -23,6 +26,9 @@ func (api *API) handleShutdown(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleEthernet(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	if r.Method == "GET" {

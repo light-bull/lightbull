@@ -26,6 +26,9 @@ func (api *API) initShows(router *mux.Router) {
 }
 
 func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	if r.Method == "GET" {
@@ -82,6 +85,9 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	// get show
@@ -148,6 +154,9 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	if r.Method == "GET" {
@@ -198,6 +207,9 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	// get visual and show
@@ -241,6 +253,9 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	if r.Method == "POST" {
@@ -277,6 +292,9 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	// get visual and show
@@ -330,6 +348,9 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	// get parameter
@@ -386,6 +407,9 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
 	enableCors(&w)
 
 	if r.Method == "GET" {

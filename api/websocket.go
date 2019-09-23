@@ -15,6 +15,9 @@ func (api *API) initWebsocket(router *mux.Router) {
 }
 
 func (api *API) handleWebsocketClient(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) { // TODO: does this work with JS?
+		return
+	}
 	enableCors(&w)
 
 	upgrader := websocket.Upgrader{
@@ -22,7 +25,7 @@ func (api *API) handleWebsocketClient(w http.ResponseWriter, r *http.Request) {
 		WriteBufferSize: 1024,
 	}
 
-	//upgrader.CheckOrigin = func(r *http.Request) bool { return true } // FIXME?
+	//upgrader.CheckOrigin = func(r *http.Request) bool { return true } // TODO?
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
