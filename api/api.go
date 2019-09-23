@@ -1,19 +1,17 @@
 package api
 
 import (
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/spf13/viper"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 
+	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/events"
 	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/persistence"
@@ -27,8 +25,7 @@ type API struct {
 	shows       *shows.ShowCollection
 	eventhub    *events.EventHub
 	persistence *persistence.Persistence
-
-	jwtKey []byte
+	jwt         *utils.JWTManager
 }
 
 // New starts the listener for the REST API
@@ -43,10 +40,11 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.Ev
 	router := mux.NewRouter()
 
 	// Get key material for JWTs
-	err := api.initJwt()
+	jwtManager, err := utils.NewJWTManager(persistence)
 	if err != nil {
 		return nil, err
 	}
+	api.jwt = jwtManager
 
 	// API routes
 	api.initAuth(router)
@@ -76,80 +74,6 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.Ev
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 
 	return &api, nil
-}
-
-// initJwt prepares the key material to issue JWTs
-func (api *API) initJwt() error {
-	type format struct {
-		Key       []byte    `json:"key"`
-		Generated time.Time `json:"generated"`
-	}
-	data := format{}
-
-	if api.persistence.HasConfig("jwt") {
-		// config is there -> load it of fail
-		if err := api.persistence.Load("jwt", &data); err != nil {
-			return err
-		}
-
-		api.jwtKey = data.Key
-	} else {
-		// generate key and store it
-		api.jwtKey = make([]byte, 64)
-		if _, err := rand.Read(api.jwtKey); err != nil {
-			return errors.New("Failed to generate secret key for JWT: " + err.Error())
-		}
-
-		data.Key = api.jwtKey
-		data.Generated = time.Now()
-		if err := api.persistence.Save("jwt", &data, true); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// newJwt issues a new JSON Web Token
-func (api *API) newJwt() (string, error) {
-	claims := &jwt.StandardClaims{
-		Issuer:    jwtIssuer,
-		ExpiresAt: time.Now().Add(jwtValidity).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
-	return token.SignedString(api.jwtKey)
-}
-
-// checkJwt validates the given JSON Web Token
-func (api *API) checkJwt(tokenString string) bool {
-	// parse the token
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// validate signing method
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("Invalid signing method")
-		}
-
-		// give signing key to parser
-		return api.jwtKey, nil
-	})
-
-	if !token.Valid {
-		return false
-	}
-
-	// get claims
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return false
-	}
-
-	// validate claims
-	if claims.Valid() != nil {
-		return false
-	}
-
-	return true
 }
 
 // authenticate checks if a valid JWT is included in the requests and sends back an unauthorized error otherwise
@@ -182,7 +106,7 @@ func (api *API) authenticate(w *http.ResponseWriter, r *http.Request) bool {
 	tokenString := parts[1]
 
 	// check jwt
-	if ok := api.checkJwt(tokenString); !ok {
+	if !api.jwt.Check(tokenString) {
 		http.Error(*w, "Unauthorized", http.StatusUnauthorized)
 		return false
 	}

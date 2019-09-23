@@ -4,12 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"time"
-)
-
-const (
-	jwtIssuer   = "lightbull"
-	jwtValidity = 60 * time.Minute
 )
 
 // enableCors sets the Access-Control-Allow-Origin header to "*"

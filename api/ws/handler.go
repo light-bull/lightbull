@@ -33,14 +33,17 @@ func (client *WebsocketClient) handleRequest(request []byte) {
 		}
 
 		// check token
-		// TODO (token can be "")
-		//client.events <- events.NewEvent("unidentified", nil)
-
-		// return client id
-		type responseFormat struct {
-			ID uuid.UUID `json:"connectionId"`
+		if client.jwt.Check(payload.Token) {
+			// return client id
+			type responseFormat struct {
+				ID uuid.UUID `json:"connectionId"`
+			}
+			client.events <- events.NewEvent("identified", responseFormat{ID: client.id})
+			client.authenticated = true
+		} else {
+			client.events <- events.NewEvent("unidentified", nil)
+			// TODO: close connection?
 		}
-		client.events <- events.NewEvent("identified", responseFormat{ID: client.id})
 	default:
 		client.sendError("Unknown message topic")
 	}

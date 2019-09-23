@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/events"
 )
 
@@ -33,25 +34,31 @@ var newline = []byte{'\n'}
 type WebsocketClient struct {
 	eventhub *events.EventHub
 	conn     *websocket.Conn
+	jwt      *utils.JWTManager
 
 	events chan *events.Event
 	send   chan []byte
 
-	id uuid.UUID
+	id            uuid.UUID
+	authenticated bool
 }
 
 // NewWebsocketClient initalizes a new websocket client and runs the handlers
-func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub) *WebsocketClient {
+func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub, jwtmanager *utils.JWTManager) *WebsocketClient {
 	client := WebsocketClient{
-		eventhub: eventhub,
-		conn:     conn,
-		events:   make(chan *events.Event, 256),
-		send:     make(chan []byte, 256),
-		id:       uuid.New(), // TODO: make unique
+		eventhub:      eventhub,
+		conn:          conn,
+		jwt:           jwtmanager,
+		events:        make(chan *events.Event, 256),
+		send:          make(chan []byte, 256),
+		id:            uuid.New(), // TODO: make unique
+		authenticated: false,
 	}
 
 	go client.readPump()
 	go client.writePump()
+
+	client.eventhub.RegisterClient(&client)
 
 	return &client
 }

@@ -30,7 +30,7 @@ func (api *API) handleAuth(w http.ResponseWriter, r *http.Request) {
 		// check password
 		hash := viper.GetString("api.authentication")
 		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(data.Password)) == nil {
-			jwt, err := api.newJwt()
+			jwt, err := api.jwt.New()
 			if err != nil {
 				log.Println("Cannot create JWT: " + err.Error())
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
