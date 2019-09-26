@@ -31,7 +31,7 @@ func New() (*Lightbull, error) {
 	lightbull.EventHub = events.NewEventHub()
 
 	// initialize persistence
-	lightbull.Persistence, err = persistence.NewPersistence()
+	lightbull.Persistence, err = persistence.NewPersistence(lightbull.EventHub)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +42,9 @@ func New() (*Lightbull, error) {
 		return nil, err
 	}
 
-	// load shows
+	// create show collection and load shows
 	lightbull.Shows = shows.NewShowCollection()
+	lightbull.Persistence.LoadShows(lightbull.Shows)
 
 	// run update loop for modes and hardware
 	go lightbull.UpdateLoop()

@@ -1,13 +1,9 @@
-* Websockets
-    * Handle incoming messages
-    * Router struct
-* Connection ID -> client ID
-    * Also for API
-    * Include in events
-* Async save to disk
+* Connection ID: Include in events
 * Move led config to config file
 
 * Check that part is only used in one group
 * API to restore parameter defaults
 * Switch LEDs of if current show or visual are nil
 * Network: DHCP client and server
+* Websocket: router struct
+* Throttle save of shows

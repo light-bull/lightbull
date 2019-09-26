@@ -2,14 +2,10 @@ package shows
 
 import (
 	"errors"
-	"log"
-	"path"
-	"path/filepath"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/light-bull/lightbull/shows/parameters"
-	"github.com/spf13/viper"
 )
 
 // ShowCollection is the collection of all available shows
@@ -23,8 +19,6 @@ type ShowCollection struct {
 // NewShowCollection loads all shows from the configuration file and returns the new ShowCollection objects
 func NewShowCollection() *ShowCollection {
 	showCollection := ShowCollection{}
-
-	showCollection.loadShows()
 
 	return &showCollection
 }
@@ -46,22 +40,21 @@ func (showCollection *ShowCollection) NewShow(name string, favorite bool) (*Show
 
 	showCollection.shows = append(showCollection.shows, show)
 
-	err = show.Save()
-	if err != nil {
-		return nil, err
-	}
-
 	return show, nil
+}
+
+// AppendShow appends the given show to the show collection
+func (showCollection *ShowCollection) AppendShow(show *Show) {
+	showCollection.mux.Lock()
+	defer showCollection.mux.Unlock()
+
+	showCollection.shows = append(showCollection.shows, show)
 }
 
 // DeleteShow creates a new show
 func (showCollection *ShowCollection) DeleteShow(show *Show) {
 	showCollection.mux.Lock()
 	defer showCollection.mux.Unlock()
-
-	// delete from disk
-	// TODO: trigger delete based on events
-	show.delete()
 
 	// delete from list
 	for pos, cur := range showCollection.shows {
@@ -229,27 +222,4 @@ func (showCollection *ShowCollection) FindParameter(idStr string) (*Show, *Visua
 	}
 
 	return nil, nil, nil, nil
-}
-
-// loadShows loads the stored shows from the configuration files
-func (showCollection *ShowCollection) loadShows() {
-	showCollection.mux.Lock()
-	defer showCollection.mux.Unlock()
-
-	dir := path.Join(viper.GetString("directories.config"), "shows")
-	files, _ := filepath.Glob(dir + "/*.json")
-	if files == nil {
-		log.Print("No shows loaded.")
-		return
-	}
-
-	for _, path := range files {
-		show, err := newShowFromFile(path)
-		if err != nil {
-			log.Print("Error while loading show from file: " + path + "(" + err.Error() + ")")
-			continue
-		}
-
-		showCollection.shows = append(showCollection.shows, show)
-	}
 }

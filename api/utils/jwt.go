@@ -33,7 +33,7 @@ func NewJWTManager(persistence *persistence.Persistence) (*JWTManager, error) {
 
 	if persistence.HasConfig("jwt") {
 		// config is there -> load it of fail
-		if err := persistence.Load("jwt", &data); err != nil {
+		if err := persistence.LoadConfig("jwt", &data); err != nil {
 			return nil, err
 		}
 
@@ -47,7 +47,7 @@ func NewJWTManager(persistence *persistence.Persistence) (*JWTManager, error) {
 
 		data.Key = jwtManager.key
 		data.Generated = time.Now()
-		if err := persistence.Save("jwt", &data, true); err != nil {
+		if err := persistence.SaveConfig("jwt", &data, true); err != nil {
 			return nil, err
 		}
 	}

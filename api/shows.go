@@ -75,8 +75,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 
 		show.Favorite = data.Favorite
 
-		api.eventhub.PublishNew(events.ShowAdded, show.GetData())
-		show.Save() // TODO
+		api.eventhub.PublishNew(events.ShowAdded, show, show)
 
 		// return show data, especially the ID may be interesting
 		utils.WriteJSON(&w, show)
@@ -122,11 +121,10 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 
 		show.Favorite = data.Favorite
 
-		api.eventhub.PublishNew(events.ShowChanged, show.GetData())
-		show.Save() // TODO
+		api.eventhub.PublishNew(events.ShowChanged, show, show)
 	} else if r.Method == "DELETE" {
 		api.shows.DeleteShow(show)
-		api.eventhub.PublishNew(events.ShowDeleted, show.GetData())
+		api.eventhub.PublishNew(events.ShowDeleted, show, show)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -179,8 +177,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 
 		// add visual to show
 		visual := show.NewVisual(data.Name)
-
-		api.eventhub.PublishNew(events.VisualAdded, &visual)
+		api.eventhub.PublishNew(events.VisualAdded, visual, show)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -221,13 +218,10 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 			visual.Name = data.Name
 		}
 
-		api.eventhub.PublishNew(events.VisualChanged, &visual)
-		show.Save() // TODO
+		api.eventhub.PublishNew(events.VisualChanged, visual, show)
 	} else if r.Method == "DELETE" {
 		show.DeleteVisual(visual)
-
-		api.eventhub.PublishNew(events.VisualDeleted, &visual)
-		show.Save() // TODO
+		api.eventhub.PublishNew(events.VisualDeleted, visual, show)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -267,8 +261,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		api.eventhub.PublishNew(events.GroupAdded, &group)
-		show.Save() // TODO
+		api.eventhub.PublishNew(events.GroupAdded, group, show)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -321,13 +314,11 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		api.eventhub.PublishNew(events.GroupChanged, &group)
-		show.Save() // TODO
+		api.eventhub.PublishNew(events.GroupChanged, group, show)
 	} else if r.Method == "DELETE" {
 		visual.DeleteGroup(group)
 
-		api.eventhub.PublishNew(events.GroupDeleted, &group)
-		show.Save() // TODO
+		api.eventhub.PublishNew(events.GroupDeleted, group, show)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -384,10 +375,9 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 			}
 
 			eventTopic = events.ParameterDefaultChanged
-			show.Save() // TODO
 		}
 
-		api.eventhub.PublishNew(eventTopic, &parameter)
+		api.eventhub.PublishNew(eventTopic, parameter, show)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -451,7 +441,7 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Send event
-		api.eventhub.PublishNew(events.CurrentChanged, api.helperCurrentGet())
+		api.eventhub.PublishNew(events.CurrentChanged, api.helperCurrentGet(), nil)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

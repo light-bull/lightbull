@@ -9,7 +9,7 @@ ethernet: "eth0"
 
 # Directories for configuration and temporary files.
 directories:
-    config: "/tmp/lightbull"
+    config: "test_config"
     tmp: "/var/cache/lightbull"
 
 leds:

@@ -1,5 +1,9 @@
 package events
 
+import (
+	"github.com/light-bull/lightbull/shows"
+)
+
 // EventHub receives change events and distributes those to the subscribed clients
 type EventHub struct {
 	clients map[EventClient]bool
@@ -42,8 +46,15 @@ func (eventhub *EventHub) Publish(event *Event) {
 }
 
 // PublishNew creates a new event and published it
-func (eventhub *EventHub) PublishNew(topic string, payload interface{}) {
-	event := NewEvent(topic, payload)
+func (eventhub *EventHub) PublishNew(topic string, payload interface{}, associatedShow *shows.Show) {
+	// if the payload is a show, serialize only the shortened data
+	show, ok := payload.(*shows.Show)
+	if ok {
+		payload = show.GetData()
+	}
+
+	// create event and publish it
+	event := NewEvent(topic, payload, associatedShow)
 	eventhub.Publish(event)
 }
 

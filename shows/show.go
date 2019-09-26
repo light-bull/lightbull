@@ -3,15 +3,10 @@ package shows
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"log"
-	"os"
-	"path"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/light-bull/lightbull/hardware"
-	"github.com/spf13/viper"
 )
 
 // Show is a collection of visuals
@@ -100,58 +95,6 @@ func (show *Show) GetData() interface{} {
 	return data
 }
 
-// newShowFromFile creates a new show and loads the data from the specified file. It is meant to be called from ShowCollection.
-// FIXME: move somewhere else
-func newShowFromFile(filepath string) (*Show, error) {
-	data, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return nil, err
-	}
-
-	show := Show{}
-	err = show.UnmarshalJSON(data)
-	if err != nil {
-		return nil, errors.New("Malformed show configuration")
-	}
-
-	return &show, nil
-}
-
-// Save writes the show configuration to disk
-// FIXME: move somewhere else
-func (show *Show) Save() error {
-	show.mux.Lock()
-	defer show.mux.Unlock()
-
-	//data, err := show.MarshalJSON()
-	data, err := json.MarshalIndent(show, "", "    ")
-	if err != nil {
-		log.Print("Error while serializing JSON for show")
-		return err
-	}
-
-	err = ioutil.WriteFile(show.diskFile(), data, 0644)
-	if err != nil {
-		log.Print("Failed to write show to the config file: " + err.Error())
-		return err
-	}
-
-	return nil
-}
-
-// delete deletes the show configuration from disk
-// FIXME: move somewhere else
-func (show *Show) delete() {
-	show.mux.Lock()
-	defer show.mux.Unlock()
-
-	os.Remove(show.diskFile())
-}
-
-func (show *Show) diskFile() string {
-	return path.Join(viper.GetString("directories.config"), "shows", show.ID.String()+".json")
-}
-
 // Visuals returns a list of all visuals
 func (show *Show) Visuals() []*Visual {
 	return show.visuals
@@ -164,8 +107,6 @@ func (show *Show) NewVisual(name string) *Visual {
 	show.mux.Lock()
 	show.visuals = append(show.visuals, visual)
 	show.mux.Unlock()
-
-	show.Save() // TODO: asynchronly and throttled save show
 
 	return visual
 }

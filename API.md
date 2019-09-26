@@ -74,7 +74,7 @@ dns     | IP address of DNS server
 
 ### Delete visual
 
-    curl -H "Authorization: Bearer ${jwt}" -X DELETE 'http://localhost:8080/api/shows/61370850-aa63-44f7-a9d9-49b6292763b8'
+    curl -H "Authorization: Bearer ${jwt}" -X DELETE 'http://localhost:8080/api/visuals/61370850-aa63-44f7-a9d9-49b6292763b8'
 
 ### Get all visual names (of all shows)
 

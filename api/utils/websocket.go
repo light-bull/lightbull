@@ -98,7 +98,7 @@ func (client *WebsocketClient) AddHandler(topic string, handler WebsocketHandler
 
 // SendMessage sends a message over the websocket connection
 func (client *WebsocketClient) SendMessage(topic string, payload interface{}) {
-	data, err := json.Marshal(events.NewEvent(topic, payload))
+	data, err := json.Marshal(events.NewEvent(topic, payload, nil))
 	if err != nil {
 		log.Println("Failed to serialize event for websocket")
 	}

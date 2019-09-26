@@ -2,6 +2,7 @@ package events
 
 import (
 	"github.com/google/uuid"
+	"github.com/light-bull/lightbull/shows"
 )
 
 const (
@@ -58,14 +59,23 @@ type Event struct {
 
 	// Meta info about the event (which client triggered it?)
 	Meta *EventMetaInfo `json:"meta"`
+
+	// show is the show where the event belongs to
+	show *shows.Show
 }
 
 // NewEvent creates a new event
-func NewEvent(topic string, payload interface{}) *Event {
+func NewEvent(topic string, payload interface{}, show *shows.Show) *Event {
 	event := Event{
 		Topic:   topic,
 		Payload: payload,
+		show:    show,
 	}
 
 	return &event
+}
+
+// Show returns the associated show or `nil`
+func (event *Event) Show() *shows.Show {
+	return event.show
 }
