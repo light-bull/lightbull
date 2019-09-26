@@ -71,6 +71,35 @@ func (show *Show) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// GetData is returns the details about the show and the list of visuals in a format prepared for JSON serialization.
+// It does not contain details about the groups/effects/parameters that whould be included if the Show is serialized to JSON.
+func (show *Show) GetData() interface{} {
+	type visualFormat struct {
+		ID   uuid.UUID `json:"id"`
+		Name string    `json:"name"`
+	}
+
+	type showFormat struct {
+		ID       uuid.UUID      `json:"id"`
+		Name     string         `json:"name"`
+		Favorite bool           `json:"favorite"`
+		Visuals  []visualFormat `json:"visuals"`
+	}
+
+	data := showFormat{
+		ID:       show.ID,
+		Name:     show.Name,
+		Favorite: show.Favorite,
+		Visuals:  make([]visualFormat, len(show.Visuals())),
+	}
+	for i, visual := range show.Visuals() {
+		data.Visuals[i].ID = visual.ID
+		data.Visuals[i].Name = visual.Name
+	}
+
+	return data
+}
+
 // newShowFromFile creates a new show and loads the data from the specified file. It is meant to be called from ShowCollection.
 // FIXME: move somewhere else
 func newShowFromFile(filepath string) (*Show, error) {

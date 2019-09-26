@@ -53,8 +53,8 @@ func (api *API) handleWSIdentify(ws *utils.WebsocketClient, payload *json.RawMes
 		type responseFormat struct {
 			ID uuid.UUID `json:"connectionId"`
 		}
-		ws.SendMessage("identified", responseFormat{ID: ws.ID})
-		ws.Authenticated = true
+		ws.SendMessage("identified", responseFormat{ID: ws.ID()})
+		ws.SetAuthenticated(true)
 	} else {
 		ws.SendMessage("unidentified", nil)
 		//ws.Close() // TODO

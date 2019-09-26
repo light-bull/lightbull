@@ -74,7 +74,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 
 		show.Favorite = data.Favorite
 
-		api.eventhub.PublishNew(events.ShowAdded, &show)
+		api.eventhub.PublishNew(events.ShowAdded, show.GetData())
 		show.Save() // TODO
 
 		// return show data, especially the ID may be interesting
@@ -101,30 +101,7 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		type visualFormat struct {
-			ID   uuid.UUID `json:"id"`
-			Name string    `json:"name"`
-		}
-
-		type showFormat struct {
-			ID       uuid.UUID      `json:"id"`
-			Name     string         `json:"name"`
-			Favorite bool           `json:"favorite"`
-			Visuals  []visualFormat `json:"visuals"`
-		}
-
-		data := showFormat{
-			ID:       show.ID,
-			Name:     show.Name,
-			Favorite: show.Favorite,
-			Visuals:  make([]visualFormat, len(show.Visuals())),
-		}
-		for i, visual := range show.Visuals() {
-			data.Visuals[i].ID = visual.ID
-			data.Visuals[i].Name = visual.Name
-		}
-
-		writeJSON(&w, data)
+		writeJSON(&w, show.GetData())
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -143,11 +120,11 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 
 		show.Favorite = data.Favorite
 
-		api.eventhub.PublishNew(events.ShowChanged, &show)
+		api.eventhub.PublishNew(events.ShowChanged, show.GetData())
 		show.Save() // TODO
 	} else if r.Method == "DELETE" {
 		api.shows.DeleteShow(show)
-		api.eventhub.PublishNew(events.ShowDeleted, &show)
+		api.eventhub.PublishNew(events.ShowDeleted, show.GetData())
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

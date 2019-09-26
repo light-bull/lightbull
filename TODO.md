@@ -1,6 +1,6 @@
 * Websockets
-    * Shorten payload output
     * Handle incoming messages
+    * Router struct
 * Async save to disk
 * Move led config to config file
 

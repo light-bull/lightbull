@@ -90,7 +90,7 @@ dns     | IP address of DNS server
 
     curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"parts": ["horn_left"], "effect":"othereffect"}' 'http://localhost:8080/api/groups/e8a6b7c4-d2fe-4701-9d73-fe2e8377d0fb'
 
-    It's possible to set only "parts" or "effect".
+It's possible to set only "parts" or "effect".
 
 ### Delete group
 
@@ -107,7 +107,7 @@ dns     | IP address of DNS server
     curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"current":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
     curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"default":{"r":255, "g":0, "b":0}}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf' 
 
-    The current and default value can also be set in the same request.
+The current and default value can also be set in the same request.
 
 ### Restore default
 
@@ -125,10 +125,20 @@ dns     | IP address of DNS server
     curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"visual":"61370850-aa63-44f7-a9d9-49b6292763b8"}' 'http://localhost:8080/api/current'
     curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"show":"4f7f6045-bd3f-4fa3-9790-008df78571c1","visual":"61370850-aa63-44f7-a9d9-49b6292763b8"}' 'http://localhost:8080/api/current'
 
-    When the show is changed and no visual is specified, the current visual is set to null (but only if the value changes). If only a visual is specified, it must belong to the current show.
+When the show is changed and no visual is specified, the current visual is set to null (but only if the value changes). If only a visual is specified, it must belong to the current show.
 
 ### Set blank
 
     curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"blank":"true"}' 'http://localhost:8080/api/current'
 
-    Sets the visual to null which means that the LEDs are off. The current show is not changed.
+Sets the visual to null which means that the LEDs are off. The current show is not changed.
+
+# Websockets
+
+## Connect
+
+Connect to `ws://localhost:8080/api/ws`. The first message has to be:
+
+    {"topic":"identify","payload":{"token":"$jwt"}}
+
+From there on, the client will receive updates.

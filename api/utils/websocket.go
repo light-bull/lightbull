@@ -43,8 +43,8 @@ type WebsocketClient struct {
 
 	handlers map[string]WebsocketHandler
 
-	ID            uuid.UUID // TODO
-	Authenticated bool
+	id            uuid.UUID
+	authenticated bool
 }
 
 // NewWebsocketClient initalizes a new websocket client and runs the handlers
@@ -59,8 +59,8 @@ func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub, jwtmana
 
 		handlers: make(map[string]WebsocketHandler),
 
-		ID:            uuid.New(), // TODO: make unique
-		Authenticated: false,
+		id:            uuid.New(), // TODO: make unique
+		authenticated: false,
 	}
 
 	go client.readPump()
@@ -74,6 +74,21 @@ func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub, jwtmana
 // EventChan is there to implement the EventClient interface
 func (client *WebsocketClient) EventChan() chan *events.Event {
 	return client.events
+}
+
+// ID returns the unique connection if of the websocket client
+func (client *WebsocketClient) ID() uuid.UUID {
+	return client.id
+}
+
+// Authenticated returns whether the websocket client is authenticated or not
+func (client *WebsocketClient) Authenticated() bool {
+	return client.authenticated
+}
+
+// SetAuthenticated changes the authentication state of the client
+func (client *WebsocketClient) SetAuthenticated(authenticated bool) {
+	client.authenticated = authenticated
 }
 
 // AddHandler adds a handler for an incoming message with the specified topic
@@ -143,7 +158,7 @@ func (client *WebsocketClient) readPump() {
 		return nil
 	})
 
-	// read messages and give it to eventhub
+	// read messages and call handler
 	for {
 		// get the data
 		_, data, err := client.conn.ReadMessage()
@@ -177,17 +192,20 @@ func (client *WebsocketClient) writePump() {
 	for {
 		select {
 		case event, ok := <-client.events:
-			// convert event to json bytes for sending
 			if !ok {
-				// if not, the hub closed the channel, so close the connection
+				// if not ok, the hub closed the channel, so close the connection
 				client.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			data, err := json.Marshal(event)
-			if err != nil {
-				log.Println("Failed to serialize event for websocket")
+
+			// only send events if client is authenticated
+			if client.Authenticated() {
+				data, err := json.Marshal(event)
+				if err != nil {
+					log.Println("Failed to serialize event for websocket")
+				}
+				client.send <- data
 			}
-			client.send <- data
 		case message, ok := <-client.send:
 			// we want to send something, so first set the deadline
 			client.updateWriteDeadline()
