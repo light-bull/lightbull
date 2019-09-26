@@ -70,6 +70,8 @@ func (lightbull *Lightbull) UpdateLoop() {
 		show := lightbull.Shows.CurrentShow()
 		if show != nil {
 			show.Update(lightbull.Hardware, nanoseconds)
+		} else {
+			lightbull.Hardware.Led.SetColorAll(0, 0, 0)
 		}
 
 		lightbull.Hardware.Update()

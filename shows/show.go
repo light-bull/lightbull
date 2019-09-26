@@ -155,5 +155,7 @@ func (show *Show) Update(hw *hardware.Hardware, nanoseconds int64) {
 	visual := show.CurrentVisual()
 	if visual != nil {
 		visual.Update(hw, nanoseconds)
+	} else {
+		hw.Led.SetColorAll(0, 0, 0)
 	}
 }
