@@ -27,3 +27,4 @@ leds:
     brightnessCap: 80
     spiMHz: 1
     fps: 25
+    drawDummy: false

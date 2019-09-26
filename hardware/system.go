@@ -158,7 +158,7 @@ func (system *System) SetEthernetConfig(c EthernetConfig) error {
 		newDNS = parsedDNS
 	}
 
-	// FIXME
+	// TODO
 	if c.Mode == EthDhcpClient || c.Mode == EthDhcpServer {
 		return errors.New("Ethernet configuration with DHCP not implemented yet")
 	}

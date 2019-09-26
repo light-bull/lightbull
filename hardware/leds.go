@@ -29,6 +29,7 @@ type LED struct {
 	maxLedID   int
 
 	maxColorSum int
+	drawDummy   bool
 }
 
 // NewLED creates a new LED struct. After that, `AddPart` needs to be called and then `Init`.
@@ -97,6 +98,9 @@ func (led *LED) Init() error {
 	// set brightness cap
 	led.maxColorSum = (3 * 255) * viper.GetInt("leds.brightnessCap") / 100
 
+	// load other config
+	led.drawDummy = viper.GetBool("leds.drawDummy")
+
 	return nil
 }
 
@@ -152,8 +156,7 @@ func (led *LED) SetColorAll(r byte, g byte, b byte) {
 
 // Update makes color changes visible
 func (led *LED) Update() error {
-	if led.apa102Dummy == true {
-		// TODO: config option to draw in dummy mode
+	if led.apa102Dummy == true && led.drawDummy == false {
 		return nil
 	}
 

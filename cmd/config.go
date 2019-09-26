@@ -26,6 +26,7 @@ func readConfigFile() {
 	viper.SetDefault("leds.brightnessCap", 80)
 	viper.SetDefault("leds.spiMHz", 1)
 	viper.SetDefault("leds.fps", 25)
+	viper.SetDefault("leds.drawDummy", false)
 
 	err := viper.ReadInConfig()
 	if err != nil {
