@@ -84,8 +84,9 @@ func (group *Group) Parts() []string {
 // SetParts changes the LED parts that are configured for this effect.
 func (group *Group) SetParts(parts []string) error {
 	group.parts = parts
-	// TODO
+
 	// TODO: check that part is only configured for one effect in a visual
+
 	return nil
 }
 

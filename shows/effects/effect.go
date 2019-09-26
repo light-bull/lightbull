@@ -21,9 +21,6 @@ type Effect interface {
 
 	// Parameters returns the list of paremeters
 	Parameters() []*parameters.Parameter
-
-	// setParameterStore allows to overwrite the parameter store of an effect (needed for deserialization)
-	//setParameterStore(parameters *parameters.ParameterStore)
 }
 
 // NewEffect returns a new effect of specified effect type (or nil)
