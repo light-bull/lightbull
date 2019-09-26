@@ -8,6 +8,7 @@ Fixes
 * Unmarshall input validation
 * Make sure that uuids are unique
 * use persistence and eventhub for ethernet configuration
+* JWT renew
 
 
 New features

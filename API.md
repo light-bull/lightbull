@@ -145,4 +145,4 @@ From there on, the client will receive updates. The returned connection ID shoul
 
 ## Update parameters
 
-    {"topic":"parameter","payload":{"id":"a5922724-f395-4a43-b38c-8b78de0ec2be","value":{"r": 128,"g": 255,"b": 255}}}
+    {"topic":"parameter","payload":{"id":"a5922724-f395-4a43-b38c-8b78de0ec2be","value":{"r": 128,"g": 255,"b": 255}}}current_show

@@ -178,6 +178,8 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		// add visual to show
 		visual := show.NewVisual(data.Name)
 		api.eventhub.PublishNew(events.VisualAdded, visual, show, utils.GetConnectionID(r))
+
+		utils.WriteJSON(&w, visual)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -262,6 +264,8 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 		}
 
 		api.eventhub.PublishNew(events.GroupAdded, group, show, utils.GetConnectionID(r))
+
+		utils.WriteJSON(&w, group)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

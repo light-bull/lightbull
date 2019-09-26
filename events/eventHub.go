@@ -72,12 +72,14 @@ func (eventhub *EventHub) run() {
 			}
 		case event := <-eventhub.publish:
 			for client := range eventhub.clients {
-				select {
-				case client.EventChan() <- event:
-				default:
-					close(client.EventChan())
-					delete(eventhub.clients, client)
-				}
+				client.EventChan() <- event
+				// TODO?
+				//select {
+				//case client.EventChan() <- event:
+				//default:
+				//	close(client.EventChan())
+				//	delete(eventhub.clients, client)
+				//}
 			}
 		}
 	}

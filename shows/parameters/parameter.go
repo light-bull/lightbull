@@ -22,13 +22,6 @@ type Parameter struct {
 	def DataType
 }
 
-type parameterJSON struct {
-	ID      uuid.UUID `json:"id"`
-	Key     string    `json:"key"`
-	Default DataType  `json:"default"`
-	Current DataType  `json:"current"`
-}
-
 // NewParameter returns a new parameter of the specified data type (or nil)
 func NewParameter(key string, datatype string, name string) *Parameter {
 	parameter := Parameter{}
@@ -49,9 +42,20 @@ func NewParameter(key string, datatype string, name string) *Parameter {
 
 // MarshalJSON is there to implement the `json.Marshaller` interface.
 func (parameter *Parameter) MarshalJSON() ([]byte, error) {
-	data := parameterJSON{
+	type format struct {
+		ID      uuid.UUID `json:"id"`
+		Key     string    `json:"key"`
+		Name    string    `json:"name"` // will be ignored for deserialization
+		Type    string    `json:"type"` // will be ignored for deserialization
+		Default DataType  `json:"default"`
+		Current DataType  `json:"current"`
+	}
+
+	data := format{
 		ID:      parameter.ID,
 		Key:     parameter.Key,
+		Name:    parameter.Name,
+		Type:    parameter.cur.Type(),
 		Current: parameter.cur,
 		Default: parameter.def,
 	}
