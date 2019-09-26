@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/events"
 	"github.com/light-bull/lightbull/shows"
 )
@@ -29,7 +30,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
 		shows := api.shows.Shows()
@@ -52,7 +53,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		writeJSON(&w, data)
+		utils.WriteJSON(&w, data)
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
@@ -60,7 +61,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 			Favorite bool   `json:"favorite"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
 			return
 		}
@@ -78,7 +79,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		show.Save() // TODO
 
 		// return show data, especially the ID may be interesting
-		writeJSON(&w, show)
+		utils.WriteJSON(&w, show)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -88,7 +89,7 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	// get show
 	vars := mux.Vars(r)
@@ -101,7 +102,7 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		writeJSON(&w, show.GetData())
+		utils.WriteJSON(&w, show.GetData())
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -109,8 +110,9 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 			Favorite bool   `json:"favorite"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
+			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -134,7 +136,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
 		type visualFormat struct {
@@ -154,7 +156,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 				result = append(result, visual)
 			}
 		}
-		writeJSON(&w, result)
+		utils.WriteJSON(&w, result)
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
@@ -162,8 +164,9 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 			Show string `json:"show"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
+			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -187,7 +190,7 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	// get visual and show
 	vars := mux.Vars(r)
@@ -201,15 +204,16 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		writeJSON(&w, visual)
+		utils.WriteJSON(&w, visual)
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
 			Name string `json:"name"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
+			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -233,7 +237,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "POST" {
 		// get data from request
@@ -243,8 +247,9 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 			Effect string   `json:"effect"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
+			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -259,6 +264,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 		group, err := visual.NewGroup(data.Parts, data.Effect)
 		if err != nil {
 			http.Error(w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		api.eventhub.PublishNew(events.GroupAdded, &group)
@@ -272,7 +278,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	// get visual and show
 	vars := mux.Vars(r)
@@ -285,7 +291,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		writeJSON(&w, group)
+		utils.WriteJSON(&w, group)
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -293,8 +299,9 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 			Effect string   `json:"effect"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
+			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -302,6 +309,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 			group.SetParts(data.Parts)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 		}
 
@@ -309,6 +317,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 			group.SetEffect(data.Effect)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 		}
 
@@ -328,7 +337,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	// get parameter
 	vars := mux.Vars(r)
@@ -341,7 +350,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		writeJSON(&w, parameter)
+		utils.WriteJSON(&w, parameter)
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -349,8 +358,9 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 			Default *json.RawMessage `json:"default"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
+			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -387,10 +397,10 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
-		writeJSON(&w, api.handleCurrentHelperGet())
+		utils.WriteJSON(&w, api.helperCurrentGet())
 	} else if r.Method == "PUT" {
 		// get data
 		type format struct {
@@ -399,8 +409,9 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 			Blank  bool   `json:"blank"`
 		}
 		data := format{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
+			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -435,18 +446,19 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 			err := api.shows.SetCurrentVisual(show, visual)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 		}
 
 		// Send event
-		api.eventhub.PublishNew(events.CurrentChanged, api.handleCurrentHelperGet())
+		api.eventhub.PublishNew(events.CurrentChanged, api.helperCurrentGet())
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 }
 
-// handleCurrentHelperGet returns a struct with the current show and visual
-func (api *API) handleCurrentHelperGet() interface{} {
+// helperCurrentGet returns a struct with the current show and visual
+func (api *API) helperCurrentGet() interface{} {
 	type format struct {
 		Show   *uuid.UUID `json:"show"`
 		Visual *uuid.UUID `json:"visual"`

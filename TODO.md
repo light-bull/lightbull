@@ -1,6 +1,9 @@
 * Websockets
     * Handle incoming messages
     * Router struct
+* Connection ID -> client ID
+    * Also for API
+    * Include in events
 * Async save to disk
 * Move led config to config file
 

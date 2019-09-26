@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/hardware"
 )
 
@@ -16,7 +17,7 @@ func (api *API) handleShutdown(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "POST" {
 		api.hw.System.Shutdown()
@@ -29,16 +30,16 @@ func (api *API) handleEthernet(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
 		data := api.hw.System.EthernetConfig()
 
-		writeJSON(&w, data)
+		utils.WriteJSON(&w, data)
 	} else if r.Method == "PUT" {
 		data := hardware.EthernetConfig{}
 
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
 			return
 		}

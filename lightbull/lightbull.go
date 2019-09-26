@@ -30,10 +30,6 @@ func New() (*Lightbull, error) {
 	// initialize event hub
 	lightbull.EventHub = events.NewEventHub()
 
-	// FIXME: remove me
-	tmp := events.NewEventDebugClient()
-	lightbull.EventHub.RegisterClient(tmp)
-
 	// initialize persistence
 	lightbull.Persistence, err = persistence.NewPersistence()
 	if err != nil {

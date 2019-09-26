@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/light-bull/lightbull/api/utils"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,7 +15,7 @@ func (api *API) initAuth(router *mux.Router) {
 }
 
 func (api *API) handleAuth(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "POST" {
 		// get data from request
@@ -22,7 +23,7 @@ func (api *API) handleAuth(w http.ResponseWriter, r *http.Request) {
 			Password string `json:"password"`
 		}
 		data := inFormat{}
-		err := parseJSON(&w, r, &data)
+		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
 			return
 		}
@@ -41,7 +42,7 @@ func (api *API) handleAuth(w http.ResponseWriter, r *http.Request) {
 			}
 			result := outFormat{Jwt: jwt}
 
-			writeJSON(&w, result)
+			utils.WriteJSON(&w, result)
 		} else {
 			http.Error(w, "Invalid password", http.StatusUnauthorized)
 		}

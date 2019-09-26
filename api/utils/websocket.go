@@ -98,7 +98,11 @@ func (client *WebsocketClient) AddHandler(topic string, handler WebsocketHandler
 
 // SendMessage sends a message over the websocket connection
 func (client *WebsocketClient) SendMessage(topic string, payload interface{}) {
-	client.events <- events.NewEvent(topic, payload)
+	data, err := json.Marshal(events.NewEvent(topic, payload))
+	if err != nil {
+		log.Println("Failed to serialize event for websocket")
+	}
+	client.send <- data
 }
 
 // SendError sends an error back over the websocket connection
@@ -107,7 +111,7 @@ func (client *WebsocketClient) SendError(msg string) {
 		Msg string `json:"msg"`
 	}
 
-	client.events <- events.NewEvent("error", errorFormat{Msg: msg})
+	client.SendMessage("error", errorFormat{Msg: msg})
 }
 
 // Close closes the websocket connection

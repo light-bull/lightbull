@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/light-bull/lightbull/api/utils"
+	"github.com/light-bull/lightbull/events"
 )
 
 func (api *API) initWS(router *mux.Router) {
@@ -17,7 +18,7 @@ func (api *API) initWS(router *mux.Router) {
 
 func (api *API) handleWebsocketClient(w http.ResponseWriter, r *http.Request) {
 	// authentication is done inside the websocket connection since JS does not support sending the Authentication header here
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -34,6 +35,7 @@ func (api *API) handleWebsocketClient(w http.ResponseWriter, r *http.Request) {
 
 	client := utils.NewWebsocketClient(conn, api.eventhub, api.jwt)
 	client.AddHandler("identify", api.handleWSIdentify)
+	client.AddHandler("parameter", api.handleWSParameter)
 }
 
 func (api *API) handleWSIdentify(ws *utils.WebsocketClient, payload *json.RawMessage) {
@@ -59,4 +61,39 @@ func (api *API) handleWSIdentify(ws *utils.WebsocketClient, payload *json.RawMes
 		ws.SendMessage("unidentified", nil)
 		//ws.Close() // TODO
 	}
+}
+
+func (api *API) handleWSParameter(ws *utils.WebsocketClient, payload *json.RawMessage) {
+	if !ws.Authenticated() {
+		ws.SendError("Unauthenticated")
+		return
+	}
+
+	// get parameter id and new value
+	type payloadFormat struct {
+		ID    string           `json:"id"`
+		Value *json.RawMessage `json:"value"`
+	}
+	data := payloadFormat{}
+	err := json.Unmarshal(*payload, &data)
+	if err != nil {
+		ws.SendError("Invalid data format")
+	}
+
+	// get parameter
+	_, _, _, parameter := api.shows.FindParameter(data.ID)
+	if parameter == nil {
+		ws.SendError("Invalud or unknown ID")
+		return
+	}
+
+	// update value
+	err = parameter.SetFromJSON(*data.Value)
+	if err != nil {
+		ws.SendError("Failed to set parameter: " + err.Error())
+		return
+	}
+
+	// trigger event
+	api.eventhub.PublishNew(events.ParameterChanged, &parameter)
 }

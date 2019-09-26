@@ -142,3 +142,7 @@ Connect to `ws://localhost:8080/api/ws`. The first message has to be:
     {"topic":"identify","payload":{"token":"$jwt"}}
 
 From there on, the client will receive updates.
+
+## Update parameters
+
+    {"topic":"parameter","payload":{"id":"a5922724-f395-4a43-b38c-8b78de0ec2be","value":{"r": 128,"g": 255,"b": 255}}}

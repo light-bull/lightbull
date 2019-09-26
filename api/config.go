@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/shows/effects"
 )
@@ -17,7 +18,7 @@ func (api *API) handleConfig(w http.ResponseWriter, r *http.Request) {
 	if !api.authenticate(&w, r) {
 		return
 	}
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
 		type format struct {
@@ -35,7 +36,7 @@ func (api *API) handleConfig(w http.ResponseWriter, r *http.Request) {
 			data.Features = append(data.Features, "ethernet")
 		}
 
-		writeJSON(&w, data)
+		utils.WriteJSON(&w, data)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
