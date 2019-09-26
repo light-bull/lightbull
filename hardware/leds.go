@@ -1,6 +1,7 @@
 package hardware
 
 import (
+	"errors"
 	"image"
 	"image/color"
 	"log"
@@ -34,7 +35,7 @@ type LED struct {
 func NewLED() *LED {
 	led := &LED{}
 	led.partLedMap = make(map[string][]int)
-	led.maxLedID = 0
+	led.maxLedID = -1
 	return led
 }
 
@@ -60,7 +61,7 @@ func (led *LED) Init() error {
 	// check number of LEDs
 	numLeds := led.getTotalNumLeds()
 	if numLeds == 0 {
-		panic("No LED parts defined")
+		return errors.New("No LEDs defined")
 	}
 
 	// initialize periph library

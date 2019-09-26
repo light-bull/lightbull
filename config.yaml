@@ -13,6 +13,17 @@ directories:
     tmp: "/var/cache/lightbull"
 
 leds:
+    parts:
+        - name: "horn_left"
+          leds: [[0, 68], ]
+        - name: "head_left"
+          leds: [[69, 156], [199, 249]]
+        - name: "hole_left"
+          leds: [[157, 198], ]
+        - name: "head_right"
+          leds: [[250, 392], ]
+        - name: "horn_right"
+          leds: [[400, 468], ]
     brightnessCap: 80
     spiMHz: 1
     fps: 25

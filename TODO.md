@@ -1,5 +1,4 @@
 * Connection ID: Include in events
-* Move led config to config file
 
 * Check that part is only used in one group
 * API to restore parameter defaults

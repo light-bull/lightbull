@@ -17,13 +17,14 @@ Customize LEDs
 Concept
 -------
 
-The software needs to know, which LED IDs belong to which parts. This is defined in `hardware/hardware.go`:
+The software needs to know, which LED IDs belong to which parts. This is defined in the config file `config.yaml`:
 
-    hw.Led.AddPart("horn_left", 20, 10)
-    hw.Led.AddPart("horn_left", 40, 44)
-    hw.Led.AddPart("horn_left", 70, 75)
-
-    hw.Led.AddPart("horn_right", 0, 5)
+    leds:
+        parts:
+            - name: "horn_right"
+              leds: [[0, 5]]
+            - name: "horn_left"
+              leds: [[20, 10], [40, 44], [70, 75]]
 
 The LED IDs from the first to second number (including both IDs!) is added to that part.
 So here, the part "horn_left" would consist of these IDs:

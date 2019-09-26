@@ -1,5 +1,11 @@
 package hardware
 
+import (
+	"errors"
+
+	"github.com/spf13/viper"
+)
+
 // Hardware controlls all connected hardware like LEDs, the ethernet interface or the controller board itself.
 type Hardware struct {
 	Led    *LED
@@ -10,17 +16,42 @@ type Hardware struct {
 func New() (*Hardware, error) {
 	hw := Hardware{}
 
-	// initialize leds
+	// create leds struct
 	hw.Led = NewLED()
 
-	// TODO: move to config file
-	hw.Led.AddPart("horn_left", 0, 68)
-	hw.Led.AddPart("head_left", 69, 156)
-	hw.Led.AddPart("head_left", 199, 249)
-	hw.Led.AddPart("hole_left", 157, 198)
-	hw.Led.AddPart("head_right", 250, 392)
-	hw.Led.AddPart("horn_right", 400, 468)
+	// read led parts from config file
+	ledsConfig := viper.Sub("leds")
+	if ledsConfig == nil {
+		return nil, errors.New("Missing LED part definition") // should not happen since it is added by default. but who knows ;)
+	}
 
+	type partFormat struct {
+		Name string  `mapstructure:"name"`
+		Leds [][]int `mapstructure:"leds"`
+	}
+
+	type format struct {
+		Parts []partFormat `mapstructure:"parts"`
+	}
+	var partConfig format
+
+	err := ledsConfig.Unmarshal(&partConfig)
+	if err != nil {
+		return nil, errors.New("Malformed LED part definition")
+	}
+
+	// configure led parts
+	for _, part := range partConfig.Parts {
+		for _, leds := range part.Leds {
+			if len(leds) != 2 {
+				return nil, errors.New("Malformed LED part definition")
+			}
+
+			hw.Led.AddPart(part.Name, leds[0], leds[1])
+		}
+	}
+
+	// init leds
 	if err := hw.Led.Init(); err != nil {
 		return nil, err
 	}

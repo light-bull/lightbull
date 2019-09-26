@@ -22,6 +22,7 @@ func readConfigFile() {
 	viper.SetDefault("directories.config", "/lightbull")
 	viper.SetDefault("directories.tmp", "/var/cache/lightbull")
 
+	viper.SetDefault("leds.parts", nil)
 	viper.SetDefault("leds.brightnessCap", 80)
 	viper.SetDefault("leds.spiMHz", 1)
 	viper.SetDefault("leds.fps", 25)
