@@ -1,6 +1,7 @@
 package events
 
 import (
+	"github.com/google/uuid"
 	"github.com/light-bull/lightbull/shows"
 )
 
@@ -46,7 +47,7 @@ func (eventhub *EventHub) Publish(event *Event) {
 }
 
 // PublishNew creates a new event and published it
-func (eventhub *EventHub) PublishNew(topic string, payload interface{}, associatedShow *shows.Show) {
+func (eventhub *EventHub) PublishNew(topic string, payload interface{}, associatedShow *shows.Show, connectionID uuid.UUID) {
 	// if the payload is a show, serialize only the shortened data
 	show, ok := payload.(*shows.Show)
 	if ok {
@@ -54,7 +55,7 @@ func (eventhub *EventHub) PublishNew(topic string, payload interface{}, associat
 	}
 
 	// create event and publish it
-	event := NewEvent(topic, payload, associatedShow)
+	event := NewEvent(topic, payload, associatedShow, connectionID)
 	eventhub.Publish(event)
 }
 

@@ -1,6 +1,8 @@
 package events
 
 import (
+	"encoding/json"
+
 	"github.com/google/uuid"
 	"github.com/light-bull/lightbull/shows"
 )
@@ -49,6 +51,20 @@ type EventMetaInfo struct {
 	ConnectionID uuid.UUID
 }
 
+// MarshalJSON is there to implement the `json.Marshaller` interface.
+func (meta *EventMetaInfo) MarshalJSON() ([]byte, error) {
+	type format struct {
+		ConnectionID string `json:"connectionId,omitempty"`
+	}
+	data := format{}
+
+	if meta.ConnectionID != uuid.Nil {
+		data.ConnectionID = meta.ConnectionID.String()
+	}
+
+	return json.Marshal(data)
+}
+
 // Event is an event that is sent through the event hub
 type Event struct {
 	// Topic of the event (like show_added)
@@ -65,11 +81,14 @@ type Event struct {
 }
 
 // NewEvent creates a new event
-func NewEvent(topic string, payload interface{}, show *shows.Show) *Event {
+func NewEvent(topic string, payload interface{}, show *shows.Show, connectionID uuid.UUID) *Event {
 	event := Event{
 		Topic:   topic,
 		Payload: payload,
-		show:    show,
+		Meta: &EventMetaInfo{
+			ConnectionID: connectionID,
+		},
+		show: show,
 	}
 
 	return &event

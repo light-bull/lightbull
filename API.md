@@ -141,7 +141,7 @@ Connect to `ws://localhost:8080/api/ws`. The first message has to be:
 
     {"topic":"identify","payload":{"token":"$jwt"}}
 
-From there on, the client will receive updates.
+From there on, the client will receive updates. The returned connection ID should be included in all future HTTP API requests in the `X-Lightbull-Connection-Id` header.
 
 ## Update parameters
 

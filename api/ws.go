@@ -95,5 +95,5 @@ func (api *API) handleWSParameter(ws *utils.WebsocketClient, payload *json.RawMe
 	}
 
 	// trigger event
-	api.eventhub.PublishNew(events.ParameterChanged, &parameter, nil)
+	api.eventhub.PublishNew(events.ParameterChanged, &parameter, nil, uuid.Nil)
 }

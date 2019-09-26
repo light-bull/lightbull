@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/spf13/viper"
 
@@ -74,42 +73,4 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.Ev
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 
 	return &api, nil
-}
-
-// authenticate checks if a valid JWT is included in the requests and sends back an unauthorized error otherwise
-func (api *API) authenticate(w *http.ResponseWriter, r *http.Request) bool {
-	// get Authorization header
-	authHeaders, ok := r.Header["Authorization"]
-	if !ok {
-		http.Error(*w, "Unauthorized", http.StatusUnauthorized)
-		return false
-	}
-
-	// we need exactly one Authorization header
-	if len(authHeaders) != 1 {
-		http.Error(*w, "Unauthorized", http.StatusUnauthorized)
-		return false
-	}
-
-	// get plain JWT (header is: "Bearer <jwt>")
-	parts := strings.SplitN(authHeaders[0], " ", 2)
-	if len(parts) != 2 {
-		http.Error(*w, "Unauthorized", http.StatusUnauthorized)
-		return false
-	}
-
-	if parts[0] != "Bearer" {
-		http.Error(*w, "Unauthorized", http.StatusUnauthorized)
-		return false
-	}
-
-	tokenString := parts[1]
-
-	// check jwt
-	if !api.jwt.Check(tokenString) {
-		http.Error(*w, "Unauthorized", http.StatusUnauthorized)
-		return false
-	}
-
-	return true
 }
