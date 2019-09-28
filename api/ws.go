@@ -33,7 +33,7 @@ func (api *API) handleWebsocketClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := utils.NewWebsocketClient(conn, api.eventhub, api.jwt)
+	client := utils.NewWebsocketClient(conn, api.eventhub)
 	client.AddHandler("identify", api.handleWSIdentify)
 	client.AddHandler("parameter", api.handleWSParameter)
 }

@@ -36,7 +36,6 @@ type WebsocketHandler func(ws *WebsocketClient, payload *json.RawMessage)
 type WebsocketClient struct {
 	eventhub *events.EventHub
 	conn     *websocket.Conn
-	jwt      *JWTManager
 
 	events chan *events.Event
 	send   chan []byte
@@ -48,11 +47,10 @@ type WebsocketClient struct {
 }
 
 // NewWebsocketClient initalizes a new websocket client and runs the handlers
-func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub, jwtmanager *JWTManager) *WebsocketClient {
+func NewWebsocketClient(conn *websocket.Conn, eventhub *events.EventHub) *WebsocketClient {
 	client := WebsocketClient{
 		eventhub: eventhub,
 		conn:     conn,
-		jwt:      jwtmanager,
 
 		events: make(chan *events.Event, 256),
 		send:   make(chan []byte, 256),
