@@ -32,9 +32,10 @@ traits:
                 "error": "Invalid token"
               }
 
-  validatedBody:
+  validatingBody:
     responses:
       400:
+        description: The request body was malformed or contained invalid field values.
         body:
           application/json:
             type: Error
@@ -43,11 +44,11 @@ traits:
                 "error": "Invalid request body"
               }
 
-  writing:
+  connectionAware:
     headers:
       X-Lightbull-Connection-ID?:
         description: |
-          Contains the connection ID of ones WebSocket-Connection to identify which client has performed a write request.
+          Contains the connection ID of a WebSocket-Connection to identify which client has performed the request.
 
   singleton:
     responses:
@@ -121,6 +122,11 @@ types:
     properties:
       showId: UUID
 
+  VisualWithGroups:
+    type: Visual
+    properties:
+      groups: string[]
+
 /api/auth:
   description: Authentication endpoint
   is: [public]
@@ -181,7 +187,7 @@ types:
 
   post:
     description: Create a new show
-    is: [writing, validatedBody]
+    is: [connectionAware, validatingBody]
     body:
       application/json:
         type: CreateShowRequest
@@ -240,7 +246,7 @@ types:
                 }
     put:
       description: Update details of a show
-      is: [validatedBody]
+      is: [connectionAware, validatingBody]
       body:
         application/json:
           type: Show
@@ -262,13 +268,14 @@ types:
                   "name": "Updated name",
                   "favorite": true
                 }
+
     delete:
       description: Deletes a show
       responses:
         204:
           description: The show has been deleted.
 
-/visuals:
+/api/visuals:
   description: A collection of visuals
   is: [secured]
   get:
@@ -286,9 +293,10 @@ types:
                   "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
                 }
               ]
+
   post:
     description: Create a new visual
-    is: [validatedBody]
+    is: [connectionAware, validatingBody]
     body:
       application/json:
         type: CreateVisualRequest
@@ -318,3 +326,25 @@ types:
               {
                 "error": "Visual with name New Visual already exists"
               }
+
+  /{visualId}:
+    is: [singleton]
+    description: Details of a visual
+    uriParameters:
+      visualId:
+        type: UUID
+    get:
+      description: Get details of a visual
+      responses:
+        200:
+          body:
+            application/json:
+              type: VisualWithGroups
+              example: |
+                {
+                  "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+                  "name": "New Visual",
+                  "groups": [
+                    "group1"
+                  ]
+                }
