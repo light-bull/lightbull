@@ -1,0 +1,320 @@
+#%RAML 1.0
+---
+title: LightBull
+securedBy: [jwt]
+
+securitySchemes:
+  jwt:
+    description: |
+      Use a JWT obtained via /api/auth to authenticate
+    type: x-bearer-jwt
+    describedBy:
+      headers:
+        Authorization:
+          description: |
+            Contains the JWT using the Bearer Authorization scheme, e. g. Bearer eyJhbGciOiJIUzUxMiIsIn...
+          type: string
+
+traits:
+  public:
+    securedBy: []
+
+  secured:
+    securedBy: [jwt]
+    responses:
+      401:
+        description: The provided JWT was invalid, expired or missing.
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Invalid token"
+              }
+
+  validatedBody:
+    responses:
+      400:
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Invalid request body"
+              }
+
+  writing:
+    headers:
+      X-Lightbull-Connection-ID?:
+        description: |
+          Contains the connection ID of ones WebSocket-Connection to identify which client has performed a write request.
+
+  singleton:
+    responses:
+      404:
+        description: The resource does not exist.
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Not found"
+              }
+
+types:
+  UUID:
+    displayName: uuid
+    type: string
+    pattern: ^[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12}$
+
+  Error:
+    type: object
+    properties:
+      error: string
+
+  AuthenticationWithPassword:
+    type: object
+    properties:
+      password: string
+
+  JWTAuthentication:
+    type: object
+    properties:
+      jwt: string
+
+  CreateShowRequest:
+    type: object
+    properties:
+      name: string
+
+  CreateVisualRequest:
+    type: object
+    properties:
+      showId: UUID
+      name: string
+
+  Show:
+    type: object
+    properties:
+      id: UUID
+      name: string
+      favorite: boolean
+
+  ShowWithVisualIds:
+    type: Show
+    properties:
+      visualIds: UUID[]
+
+  ShowWithVisuals:
+    type: Show
+    properties:
+      visuals: Visual[]
+
+  Visual:
+    type: object
+    properties:
+      id: UUID
+      name: string
+
+  VisualWithShowId:
+    type: Visual
+    properties:
+      showId: UUID
+
+/api/auth:
+  description: Authentication endpoint
+  is: [public]
+  post:
+    description: Retrieve a JWT in exchange for a password
+    body:
+      application/json:
+        type: AuthenticationWithPassword
+        example: |
+          {
+            "password": "secretpassword"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            type: JWTAuthentication
+            example: |
+              {
+                "jwt": "eyJhbGciOiJIUzUxMiIsIn..."
+              }
+      401:
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Invalid password"
+              }
+
+/api/shows:
+  description: Collection of shows
+  is: [secured]
+  get:
+    description: Get a list of shows
+    responses:
+      200:
+        body:
+          application/json:
+            type: ShowWithVisualIds[]
+            example: |
+              [
+                {
+                  "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+                  "name": "Empty Show",
+                  "favorite": false,
+                  "visualIds": []
+                },
+                {
+                  "id": "2a8c4f4d-f6a3-47ba-80dc-7b6b268eb312",
+                  "name": "Show with Visuals",
+                  "favorite": true,
+                  "visualIds": [
+                    "4238af9f-6367-496a-891e-3617e2df121c"
+                  ]
+                }
+              ]
+
+  post:
+    description: Create a new show
+    is: [writing, validatedBody]
+    body:
+      application/json:
+        type: CreateShowRequest
+        example: |
+          {
+            "name": "New show"
+          }
+    responses:
+      201:
+        description: The show has been created.
+        body:
+          application/json:
+            type: ShowWithVisualIds
+            example: |
+              {
+                "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+                "name": "New Show",
+                "favorite": false,
+                "visualIds": []
+              }
+      409:
+        description: A show with the same name already exists
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Show with name New Show already exists"
+              }
+
+  /{showId}:
+    is: [singleton]
+    description: Details of a show
+    uriParameters:
+      showId:
+        description: ID of the show
+        type: UUID
+    get:
+      description: Get details of a show
+      responses:
+        200:
+          body:
+            application/json:
+              type: ShowWithVisuals
+              example: |
+                {
+                  "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+                  "name": "Empty Show",
+                  "favorite": false,
+                  "visuals": [
+                    {
+                      "id": "4238af9f-6367-496a-891e-3617e2df121c",
+                      "name": "Stripe Visual"
+                    }
+                  ]
+                }
+    put:
+      description: Update details of a show
+      is: [validatedBody]
+      body:
+        application/json:
+          type: Show
+          example: |
+            {
+              "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+              "name": "Updated name",
+              "favorite": true
+            }
+      responses:
+        200:
+          description: The show has been updated.
+          body:
+            application/json:
+              type: Show
+              example: |
+                {
+                  "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+                  "name": "Updated name",
+                  "favorite": true
+                }
+    delete:
+      description: Deletes a show
+      responses:
+        204:
+          description: The show has been deleted.
+
+/visuals:
+  description: A collection of visuals
+  is: [secured]
+  get:
+    description: Get a list of visuals
+    responses:
+      200:
+        body:
+          application/json:
+            type: VisualWithShowId[]
+            example: |
+              [
+                {
+                  "id": "4238af9f-6367-496a-891e-3617e2df121c",
+                  "name": "Stripe Visual",
+                  "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+                }
+              ]
+  post:
+    description: Create a new visual
+    is: [validatedBody]
+    body:
+      application/json:
+        type: CreateVisualRequest
+        example: |
+          {
+            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+            "name": "New Visual"
+          }
+    responses:
+      201:
+        description: The visual has been created.
+        body:
+          application/json:
+            type: VisualWithShowId
+            example: |
+              {
+                "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+                "name": "New Visual",
+                "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+              }
+      409:
+        description: A visual with the same name already exists.
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Visual with name New Visual already exists"
+              }
