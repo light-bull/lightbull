@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/light-bull/lightbull/api/mapper"
 	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/events"
 	"github.com/light-bull/lightbull/shows"
@@ -33,27 +34,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
-		shows := api.shows.Shows()
-
-		type format struct {
-			ID       uuid.UUID   `json:"id"`
-			Name     string      `json:"name"`
-			Favorite bool        `json:"favorite"`
-			Visuals  []uuid.UUID `json:"visuals"`
-		}
-		data := make([]format, len(shows))
-
-		for i, show := range shows {
-			data[i].ID = show.ID
-			data[i].Name = show.Name
-			data[i].Favorite = show.Favorite
-			data[i].Visuals = make([]uuid.UUID, len(show.Visuals()))
-			for j, visual := range show.Visuals() {
-				data[i].Visuals[j] = visual.ID
-			}
-		}
-
-		utils.WriteJSON(&w, data)
+		utils.WriteJSON(&w, mapper.MapShowCollection(api.shows))
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
@@ -78,7 +59,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		api.eventhub.PublishNew(events.ShowAdded, show, show, utils.GetConnectionID(r))
 
 		// return show data, especially the ID may be interesting
-		utils.WriteJSON(&w, show)
+		utils.WriteJSONWithStatus(&w, mapper.MapShowWithVisualIds(show), 201)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -101,7 +82,7 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, show.GetData())
+		utils.WriteJSON(&w, mapper.MapShowWithVisuals(show))
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -122,9 +103,11 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 		show.Favorite = data.Favorite
 
 		api.eventhub.PublishNew(events.ShowChanged, show, show, utils.GetConnectionID(r))
+		utils.WriteJSON(&w, mapper.MapShow(show))
 	} else if r.Method == "DELETE" {
 		api.shows.DeleteShow(show)
 		api.eventhub.PublishNew(events.ShowDeleted, show, show, utils.GetConnectionID(r))
+		w.WriteHeader(204)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

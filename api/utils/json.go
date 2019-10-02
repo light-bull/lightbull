@@ -7,13 +7,18 @@ import (
 )
 
 // WriteJSON serializes the given struct to JSON and sends it back over the HTTP connection
-func WriteJSON(w *http.ResponseWriter, v interface{}) {
-	result, err := json.Marshal(v)
+func WriteJSON(w *http.ResponseWriter, body interface{}) {
+	WriteJSONWithStatus(w, body, 200)
+}
+
+func WriteJSONWithStatus(w *http.ResponseWriter, body interface{}, status int) {
+	result, err := json.Marshal(body)
 	if err != nil {
 		http.Error(*w, "Error while serializing JSON", http.StatusInternalServerError)
 	}
 
 	(*w).Header().Set("Content-Type", "application/json")
+	(*w).WriteHeader(status)
 	(*w).Write(result)
 }
 
