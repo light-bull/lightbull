@@ -15,11 +15,6 @@ type VisualWithShowIdJSON struct {
 	ShowId uuid.UUID `json:"showId"`
 }
 
-type VisualWithGroupIdsJson struct {
-	VisualJSON
-	GroupIds []uuid.UUID `json:"groupIds"`
-}
-
 type VisualWithGroupsJson struct {
 	VisualJSON
 	Groups []GroupJSON `json:"groups"`
@@ -41,19 +36,6 @@ func MapVisualWithShowId(showId uuid.UUID, visual *shows.Visual) VisualWithShowI
 		VisualJSON: MapVisual(visual),
 		ShowId:     showId,
 	}
-}
-
-func MapVisualWithGroupIds(visual *shows.Visual) VisualWithGroupIdsJson {
-	data := VisualWithGroupIdsJson{
-		VisualJSON: MapVisual(visual),
-		GroupIds:   make([]uuid.UUID, len(visual.Groups())),
-	}
-
-	for i, group := range visual.Groups() {
-		data.GroupIds[i] = group.ID
-	}
-
-	return data
 }
 
 func MapVisualWithGroups(visual *shows.Visual) VisualWithGroupsJson {

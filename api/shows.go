@@ -101,7 +101,7 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 		show.Favorite = data.Favorite
 
 		api.eventhub.PublishNew(events.ShowChanged, show, show, utils.GetConnectionID(r))
-		utils.WriteJSON(&w, mapper.MapShow(show))
+		utils.WriteJSON(&w, mapper.MapShowWithVisuals(show))
 	} else if r.Method == "DELETE" {
 		api.shows.DeleteShow(show)
 		api.eventhub.PublishNew(events.ShowDeleted, show, show, utils.GetConnectionID(r))
@@ -142,7 +142,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		visual := show.NewVisual(data.Name)
 		api.eventhub.PublishNew(events.VisualAdded, visual, show, utils.GetConnectionID(r))
 
-		utils.WriteJSONWithStatus(&w, mapper.MapVisualWithGroupIds(visual), http.StatusCreated)
+		utils.WriteJSONWithStatus(&w, mapper.MapVisualWithGroups(visual), http.StatusCreated)
 	} else {
 		utils.WriteMethodNotAllowed(&w)
 	}
@@ -184,7 +184,7 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 
 		api.eventhub.PublishNew(events.VisualChanged, visual, show, utils.GetConnectionID(r))
 
-		utils.WriteJSON(&w, mapper.MapVisual(visual))
+		utils.WriteJSON(&w, mapper.MapVisualWithGroups(visual))
 	} else if r.Method == "DELETE" {
 		show.DeleteVisual(visual)
 		api.eventhub.PublishNew(events.VisualDeleted, visual, show, utils.GetConnectionID(r))

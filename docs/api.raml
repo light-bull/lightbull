@@ -224,7 +224,7 @@ types:
   VisualWithGroups:
     type: Visual
     properties:
-      groups: Group[]
+      groups: GroupWithEffect[]
     example: |
       {
         "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
@@ -417,7 +417,7 @@ types:
           description: The show has been updated.
           body:
             application/json:
-              type: Show
+              type: ShowWithVisuals
 
     delete:
       description: Deletes a show
@@ -448,7 +448,7 @@ types:
         description: The visual has been created.
         body:
           application/json:
-            type: VisualWithShowId
+            type: VisualWithGroups
       409:
         description: A visual with the same name already exists.
         body:
@@ -483,7 +483,7 @@ types:
           description: The visual has been updated.
           body:
             application/json:
-              type: Visual
+              type: VisualWithGroups
 
     delete:
       description: Delete a visual
