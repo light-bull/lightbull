@@ -15,7 +15,6 @@ type GroupJSON struct {
 
 type EffectJSON struct {
 	Type       string                  `json:"type"`
-	Name       string                  `json:"name"`
 	Parameters []*parameters.Parameter `json:"parameters"`
 }
 
@@ -34,7 +33,6 @@ func MapGroup(group *shows.Group) GroupJSON {
 func MapEffect(effect *effects.Effect) EffectJSON {
 	return EffectJSON{
 		Type:       (*effect).Type(),
-		Name:       (*effect).Name(),
 		Parameters: (*effect).Parameters(),
 	}
 }
