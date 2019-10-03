@@ -49,7 +49,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		// create new show
 		show, err := api.shows.NewShow(data.Name, data.Favorite)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -60,7 +60,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		// return show data, especially the ID may be interesting
 		utils.WriteJSONWithStatus(&w, mapper.MapShowWithVisualIds(show), http.StatusCreated)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -76,7 +76,7 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 
 	show := api.shows.FindShow(id)
 	if show == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusNotFound)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 		api.eventhub.PublishNew(events.ShowDeleted, show, show, utils.GetConnectionID(r))
 		w.WriteHeader(http.StatusNoContent)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -134,7 +134,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		// get show
 		show := api.shows.FindShow(data.ShowId)
 		if show == nil {
-			http.Error(w, "Invalid or unknown show ID", http.StatusBadRequest)
+			utils.WriteError(&w, "Invalid or unknown show ID", http.StatusBadRequest)
 			return
 		}
 
@@ -144,7 +144,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 
 		utils.WriteJSONWithStatus(&w, mapper.MapVisualWithGroupIds(visual), http.StatusCreated)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -161,7 +161,7 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	show, visual := api.shows.FindVisual(id)
 
 	if visual == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusNotFound)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
@@ -190,7 +190,7 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 		api.eventhub.PublishNew(events.VisualDeleted, visual, show, utils.GetConnectionID(r))
 		w.WriteHeader(http.StatusNoContent)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -216,14 +216,14 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 		// get visual
 		show, visual := api.shows.FindVisual(data.VisualId)
 		if visual == nil {
-			http.Error(w, "Invalid or unknown visual ID", http.StatusBadRequest)
+			utils.WriteError(&w, "Invalid or unknown visual ID", http.StatusBadRequest)
 			return
 		}
 
 		// add group
 		group, err := visual.NewGroup(data.Parts, data.EffectType)
 		if err != nil {
-			http.Error(w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
+			utils.WriteError(&w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -231,7 +231,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 
 		utils.WriteJSON(&w, mapper.MapGroup(group))
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -247,7 +247,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 
 	show, visual, group := api.shows.FindGroup(id)
 	if group == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusNotFound)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
@@ -268,7 +268,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		if len(data.Parts) != 0 {
 			group.SetParts(data.Parts)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 				return
 			}
 		}
@@ -276,7 +276,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		if data.EffectType != "" {
 			group.SetEffect(data.EffectType)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 				return
 			}
 		}
@@ -288,7 +288,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		api.eventhub.PublishNew(events.GroupDeleted, group, show, utils.GetConnectionID(r))
 		w.WriteHeader(http.StatusNoContent)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -304,7 +304,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 
 	show, _, _, parameter := api.shows.FindParameter(id)
 	if parameter == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusNotFound)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
@@ -327,7 +327,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 		if data.Current != nil {
 			err = parameter.SetFromJSON(*data.Current)
 			if err != nil {
-				http.Error(w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
 				return
 			}
 			eventTopic = events.ParameterChanged
@@ -337,7 +337,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 		if data.Default != nil {
 			err = parameter.SetDefaultFromJSON(*data.Default)
 			if err != nil {
-				http.Error(w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
 				return
 			}
 
@@ -346,7 +346,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 
 		api.eventhub.PublishNew(eventTopic, parameter, show, utils.GetConnectionID(r))
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -377,7 +377,7 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 		if data.ShowId != "" {
 			show = api.shows.FindShow(data.ShowId)
 			if show == nil {
-				http.Error(w, "Invalid or unknown show ID", http.StatusNotFound)
+				utils.WriteError(&w, "Invalid or unknown show ID", http.StatusNotFound)
 				return
 			}
 		}
@@ -385,7 +385,7 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 		if data.VisualId != "" {
 			_, visual = api.shows.FindVisual(data.VisualId)
 			if visual == nil {
-				http.Error(w, "Invalid or unknown visual ID", http.StatusNotFound)
+				utils.WriteError(&w, "Invalid or unknown visual ID", http.StatusNotFound)
 				return
 			}
 		}
@@ -393,7 +393,7 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 		// set current show and visual
 		err = api.shows.SetCurrentVisual(show, visual)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -409,7 +409,7 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 
 		utils.WriteJSON(&w, api.getCurrentShowAndVisual())
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
