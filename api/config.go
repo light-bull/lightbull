@@ -30,6 +30,7 @@ func (api *API) handleConfig(w http.ResponseWriter, r *http.Request) {
 		data := format{
 			Parts:   api.hw.Led.GetParts(),
 			Effects: effects.GetEffects(),
+			Features: make([]string, 0),
 		}
 
 		if api.hw.System.EthernetConfig().Mode != hardware.EthUnmanaged {
