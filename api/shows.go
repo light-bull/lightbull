@@ -263,7 +263,6 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -306,7 +305,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 
 	show, _, _, parameter := api.shows.FindParameter(id)
 	if parameter == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusBadRequest)
+		http.Error(w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
@@ -321,7 +320,6 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
