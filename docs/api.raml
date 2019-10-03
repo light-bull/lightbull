@@ -83,6 +83,10 @@ types:
     properties:
       jwt: string
 
+  EffectType:
+    type: string
+    enum: [singlecolor]
+
   CreateShowRequest:
     type: object
     properties:
@@ -93,6 +97,13 @@ types:
     properties:
       showId: UUID
       name: string
+
+  CreateGroupRequest:
+    type: object
+    properties:
+      visualId: UUID
+      parts: string[]
+      effectType: EffectType
 
   Show:
     type: object
@@ -125,7 +136,14 @@ types:
   VisualWithGroups:
     type: Visual
     properties:
-      groups: string[]
+      groups: Group[]
+
+  Group:
+    type: object
+    properties:
+      id: UUID
+      parts: string[]
+
 
 /api/auth:
   description: Authentication endpoint
@@ -271,12 +289,13 @@ types:
 
     delete:
       description: Deletes a show
+      is: [connectionAware]
       responses:
         204:
           description: The show has been deleted.
 
 /api/visuals:
-  description: A collection of visuals
+  description: Collection of visuals
   is: [secured]
   get:
     description: Get a list of visuals
@@ -344,7 +363,34 @@ types:
                 {
                   "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
                   "name": "New Visual",
-                  "groups": [
-                    "group1"
-                  ]
+                  "groups": []
                 }
+
+    put:
+      description: Update details of a visual
+      body:
+        application/json:
+          type: Visual
+          example: |
+            {
+              "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+              "name": "Updated visual name"
+            }
+      responses:
+        200:
+          description: The visual has been updated.
+          body:
+            application/json:
+              type: Visual
+              example: |
+                {
+                  "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+                  "name": "Updated visual name"
+                }
+
+    delete:
+      description: Delete a visual
+      is: [connectionAware]
+      responses:
+        204:
+          description: The visual has been deleted.

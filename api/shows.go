@@ -206,7 +206,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 		type format struct {
 			VisualId string   `json:"visualId"`
 			Parts  []string `json:"parts"`
-			Effect string   `json:"effect"`
+			EffectType string   `json:"effectType"`
 		}
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
@@ -222,7 +222,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// add group
-		group, err := visual.NewGroup(data.Parts, data.Effect)
+		group, err := visual.NewGroup(data.Parts, data.EffectType)
 		if err != nil {
 			http.Error(w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
 			return
@@ -258,7 +258,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		// get data from request
 		type format struct {
 			Parts  []string `json:"parts"`
-			Effect string   `json:"effect"`
+			EffectType string   `json:"effectType"`
 		}
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
@@ -275,8 +275,8 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if data.Effect != "" {
-			group.SetEffect(data.Effect)
+		if data.EffectType != "" {
+			group.SetEffect(data.EffectType)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
