@@ -25,11 +25,6 @@ type ShowWithVisualsJSON struct {
 	Visuals []VisualJSON `json:"visuals"`
 }
 
-type VisualJSON struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
-}
-
 func MapShow(show *shows.Show) ShowJSON {
 	return ShowJSON{
 		ID:       show.ID,
@@ -58,21 +53,18 @@ func MapShowWithVisuals(show *shows.Show) ShowWithVisualsJSON {
 	}
 
 	for i, visual := range show.Visuals() {
-		data.Visuals[i] = VisualJSON{
-			ID:   visual.ID,
-			Name: visual.Name,
-		}
+		data.Visuals[i] = MapVisual(visual)
 	}
 
 	return data
 }
 
-func MapShowCollection(showCollection *shows.ShowCollection) ShowCollectionJSON {
+func MapShows(shows []*shows.Show) ShowCollectionJSON {
 	data := ShowCollectionJSON{
-		Shows: make([]ShowWithVisualIdsJSON, len(showCollection.Shows())),
+		Shows: make([]ShowWithVisualIdsJSON, len(shows)),
 	}
 
-	for i, show := range showCollection.Shows() {
+	for i, show := range shows {
 		data.Shows[i] = MapShowWithVisualIds(show)
 	}
 

@@ -15,6 +15,7 @@ func WriteJSONWithStatus(w *http.ResponseWriter, body interface{}, status int) {
 	result, err := json.Marshal(body)
 	if err != nil {
 		http.Error(*w, "Error while serializing JSON", http.StatusInternalServerError)
+		return
 	}
 
 	(*w).Header().Set("Content-Type", "application/json")
