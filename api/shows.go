@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/light-bull/lightbull/api/mapper"
 	"github.com/light-bull/lightbull/api/utils"
@@ -123,7 +122,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
-			Name string `json:"name"`
+			Name   string `json:"name"`
 			ShowId string `json:"showId"`
 		}
 		data := format{}
@@ -204,8 +203,8 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		// get data from request
 		type format struct {
-			VisualId string   `json:"visualId"`
-			Parts  []string `json:"parts"`
+			VisualId   string   `json:"visualId"`
+			Parts      []string `json:"parts"`
 			EffectType string   `json:"effectType"`
 		}
 		data := format{}
@@ -257,7 +256,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
-			Parts  []string `json:"parts"`
+			Parts      []string `json:"parts"`
 			EffectType string   `json:"effectType"`
 		}
 		data := format{}
@@ -358,79 +357,64 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, api.helperCurrentGet())
+		utils.WriteJSON(&w, api.getCurrentShowAndVisual())
 	} else if r.Method == "PUT" {
 		// get data
 		type format struct {
-			Show   string `json:"show"`
-			Visual string `json:"visual"`
-			Blank  bool   `json:"blank"`
+			ShowId   string `json:"showId"`
+			VisualId string `json:"visualId"`
 		}
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
-		// handle input
-		if data.Blank == true {
-			// blank -> reset current visual, but keep show
-			if api.shows.CurrentShow() != nil {
-				api.shows.ClearCurrentVisual()
-			}
-		} else {
-			// get show and visual
-			var show *shows.Show
-			var visual *shows.Visual
+		// get show and visual
+		var show *shows.Show
+		var visual *shows.Visual
 
-			if data.Show != "" {
-				show = api.shows.FindShow(data.Show)
-				if show == nil {
-					http.Error(w, "Invalid or unknown show ID", http.StatusBadRequest)
-					return
-				}
-			}
-
-			if data.Visual != "" {
-				_, visual = api.shows.FindVisual(data.Visual)
-				if visual == nil {
-					http.Error(w, "Invalid or unknown visual ID", http.StatusBadRequest)
-					return
-				}
-			}
-
-			// set current show and visual
-			err := api.shows.SetCurrentVisual(show, visual)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+		if data.ShowId != "" {
+			show = api.shows.FindShow(data.ShowId)
+			if show == nil {
+				http.Error(w, "Invalid or unknown show ID", http.StatusNotFound)
 				return
 			}
 		}
 
+		if data.VisualId != "" {
+			_, visual = api.shows.FindVisual(data.VisualId)
+			if visual == nil {
+				http.Error(w, "Invalid or unknown visual ID", http.StatusNotFound)
+				return
+			}
+		}
+
+		// set current show and visual
+		err = api.shows.SetCurrentVisual(show, visual)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		currentShowAndVisual := api.getCurrentShowAndVisual()
+
 		// Send event
-		api.eventhub.PublishNew(events.CurrentChanged, api.helperCurrentGet(), nil, utils.GetConnectionID(r))
+		api.eventhub.PublishNew(events.CurrentChanged, currentShowAndVisual, nil, utils.GetConnectionID(r))
+		utils.WriteJSON(&w, currentShowAndVisual)
+	} else if r.Method == "DELETE" {
+		if api.shows.CurrentShow() != nil {
+			api.shows.ClearCurrentVisual()
+		}
+
+		utils.WriteJSON(&w, api.getCurrentShowAndVisual())
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 }
 
-// helperCurrentGet returns a struct with the current show and visual
-func (api *API) helperCurrentGet() interface{} {
-	type format struct {
-		Show   *uuid.UUID `json:"show"`
-		Visual *uuid.UUID `json:"visual"`
-	}
-	data := format{}
+// getCurrentShowAndVisual returns a struct with the current show and visual
+func (api *API) getCurrentShowAndVisual() mapper.CurrentShowAndVisualJSON {
 	show, visual := api.shows.GetCurrentVisual()
-
-	if show != nil {
-		data.Show = &show.ID
-	}
-
-	if visual != nil {
-		data.Visual = &visual.ID
-	}
-
-	return &data
+	return mapper.MapCurrent(show, visual)
 }

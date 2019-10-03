@@ -129,7 +129,7 @@ When the show is changed and no visual is specified, the current visual is set t
 
 ### Set blank
 
-    curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"blank":"true"}' 'http://localhost:8080/api/current'
+    curl -H "Authorization: Bearer ${jwt}" -X DELETE 'http://localhost:8080/api/current'
 
 Sets the visual to null which means that the LEDs are off. The current show is not changed.
 

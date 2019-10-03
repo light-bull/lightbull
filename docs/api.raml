@@ -50,7 +50,7 @@ traits:
         description: |
           Contains the connection ID of a WebSocket-Connection to identify which client has performed the request.
 
-  singleton:
+  notFound:
     responses:
       404:
         description: The resource does not exist.
@@ -61,6 +61,9 @@ traits:
               {
                 "error": "Not found"
               }
+
+  singleton:
+    is: [notFound]
 
 types:
   UUID:
@@ -293,6 +296,17 @@ types:
   Parameter:
     type: string
 
+  CurrentShowAndVisual:
+    type: object
+    properties:
+      showId?: UUID
+      visualId?: UUID
+    example: |
+      {
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "visualId": "4238af9f-6367-496a-891e-3617e2df121c"
+      }
+
 /api/auth:
   description: Authentication endpoint
   is: [public]
@@ -451,6 +465,8 @@ types:
           description: The visual has been deleted.
 
 /api/groups:
+  description: Groups of parts and effects
+  is: [secured]
   post:
     description: Create a new group
     is: [connectionAware, validatingBody]
@@ -496,3 +512,36 @@ types:
       responses:
         204:
           description: The group has been deleted.
+
+/api/current:
+  description: Information about the current show and visual
+  is: [secured]
+  get:
+    description: Get the current show and visual
+    responses:
+      200:
+        body:
+          application/json:
+            type: CurrentShowAndVisual
+
+  put:
+    description: Set the current show and visual
+    is: [notFound]
+    body:
+      application/json:
+        type: CurrentShowAndVisual
+    responses:
+      200:
+        description: The current show and visual have been set.
+        body:
+          application/json:
+            type: CurrentShowAndVisual
+
+  delete:
+    description: Clear the current visual
+    responses:
+      200:
+        description: The current visual has been cleared.
+        body:
+          application/json:
+            type: CurrentShowAndVisual
