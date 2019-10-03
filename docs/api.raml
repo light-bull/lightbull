@@ -307,6 +307,34 @@ types:
         "visualId": "4238af9f-6367-496a-891e-3617e2df121c"
       }
 
+  FeatureTypes:
+    type: string
+    enum: [ethernet]
+
+  EffectNames:
+    type: object
+    properties:
+      //: string
+    example: |
+      {
+        "singlecolor": "Single Color"
+      }
+
+  SystemConfiguration:
+    type: object
+    properties:
+      parts: string[]
+      effects: EffectNames
+      features: FeatureTypes[]
+    example: |
+      {
+        "parts": ["horn_left", "horn_right"],
+        "effects": {
+          "singlecolor": "Single Color"
+        },
+        "features": ["ethernet"]
+      }
+
 /api/auth:
   description: Authentication endpoint
   is: [public]
@@ -545,3 +573,14 @@ types:
         body:
           application/json:
             type: CurrentShowAndVisual
+
+/api/config:
+  description: System configuration
+  is: [secured]
+  get:
+    description: Retrieve system configuration
+    responses:
+      200:
+        body:
+          application/json:
+            type: SystemConfiguration
