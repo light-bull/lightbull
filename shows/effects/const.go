@@ -9,7 +9,7 @@ var effectNames map[string]string
 
 // GetEffects returns the type and name of all effects
 func GetEffects() map[string]string {
-	// create list on first call of function, reuse lateron
+	// create map on first call of function, reuse later on
 	if effectNames == nil {
 		effectNames = make(map[string]string)
 
