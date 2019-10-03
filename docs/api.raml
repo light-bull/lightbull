@@ -77,11 +77,19 @@ types:
     type: object
     properties:
       password: string
+    example: |
+      {
+        "password": "secretpassword"
+      }
 
   JWTAuthentication:
     type: object
     properties:
       jwt: string
+    example: |
+      {
+        "jwt": "eyJhbGciOiJIUzUxMiIsIn..."
+      }
 
   EffectType:
     type: string
@@ -91,19 +99,34 @@ types:
     type: object
     properties:
       name: string
+    example: |
+      {
+        "name": "New show"
+      }
 
-  CreateVisualRequest:
+  ShowCollection:
     type: object
     properties:
-      showId: UUID
-      name: string
-
-  CreateGroupRequest:
-    type: object
-    properties:
-      visualId: UUID
-      parts: string[]
-      effectType: EffectType
+      shows: ShowWithVisualIds[]
+    example: |
+      {
+        "shows": [
+          {
+            "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+            "name": "Empty Show",
+            "favorite": false,
+            "visualIds": []
+          },
+          {
+            "id": "2a8c4f4d-f6a3-47ba-80dc-7b6b268eb312",
+            "name": "Show with Visuals",
+            "favorite": true,
+            "visualIds": [
+              "4238af9f-6367-496a-891e-3617e2df121c"
+            ]
+          }
+        ]
+      }
 
   Show:
     type: object
@@ -111,32 +134,113 @@ types:
       id: UUID
       name: string
       favorite: boolean
+    example: |
+      {
+        "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "name": "Updated name",
+        "favorite": true
+      }
 
   ShowWithVisualIds:
     type: Show
     properties:
       visualIds: UUID[]
+    example: |
+      {
+        "id": "2a8c4f4d-f6a3-47ba-80dc-7b6b268eb312",
+        "name": "Show with Visuals",
+        "favorite": true,
+        "visualIds": []
+      }
 
   ShowWithVisuals:
     type: Show
     properties:
       visuals: Visual[]
+    example: |
+      {
+        "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "name": "Empty Show",
+        "favorite": false,
+        "visuals": [
+          {
+            "id": "4238af9f-6367-496a-891e-3617e2df121c",
+            "name": "Stripe Visual"
+          }
+        ]
+      }
+
+  CreateVisualRequest:
+    type: object
+    properties:
+      showId: UUID
+      name: string
+    example: |
+      {
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "name": "New Visual"
+      }
+
+  VisualCollection:
+    type: object
+    properties:
+      visuals: VisualWithShowId[]
+    example: |
+      {
+        "visuals": [
+          {
+            "id": "4238af9f-6367-496a-891e-3617e2df121c",
+            "name": "Stripe Visual",
+            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+          }
+        ]
+      }
 
   Visual:
     type: object
     properties:
       id: UUID
       name: string
+    example: |
+      {
+        "id": "4238af9f-6367-496a-891e-3617e2df121c",
+        "name": "Stripe Visual"
+      }
 
   VisualWithShowId:
     type: Visual
     properties:
       showId: UUID
+    example: |
+      {
+        "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "name": "New Visual",
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+      }
 
   VisualWithGroups:
     type: Visual
     properties:
       groups: Group[]
+    example: |
+      {
+        "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "name": "New Visual",
+        "groups": []
+      }
+
+  CreateGroupRequest:
+    type: object
+    properties:
+      visualId: UUID
+      parts: string[]
+      effectType: EffectType
+    example: |
+      {
+        "visualId": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "parts": ["horn_left", "horn_right"],
+        "effectType": "singlecolor"
+      }
 
   Group:
     type: object
@@ -144,6 +248,47 @@ types:
       id: UUID
       parts: string[]
 
+  GroupWithEffectType:
+    type: Group
+    properties:
+      effectType: EffectType
+    example: |
+      {
+        "id": "ff0a2c40-da2c-485c-a53d-720a0a183110",
+         "parts": [
+           "horn_left",
+           "horn_right"
+         ],
+         "effectType": "singlecolor"
+      }
+
+  GroupWithEffect:
+    type: Group
+    properties:
+      effect: Effect
+    example: |
+      {
+        "id": "ff0a2c40-da2c-485c-a53d-720a0a183110",
+        "parts": [
+          "horn_left",
+          "horn_right"
+        ],
+        "effect": {
+          "type": "singlecolor",
+          "name": "Single Color",
+          "parameters": []
+        }
+      }
+
+  Effect:
+    type: object
+    properties:
+      type: string
+      name: string
+      parameters: Parameter[]
+
+  Parameter:
+    type: string
 
 /api/auth:
   description: Authentication endpoint
@@ -153,19 +298,11 @@ types:
     body:
       application/json:
         type: AuthenticationWithPassword
-        example: |
-          {
-            "password": "secretpassword"
-          }
     responses:
       200:
         body:
           application/json:
             type: JWTAuthentication
-            example: |
-              {
-                "jwt": "eyJhbGciOiJIUzUxMiIsIn..."
-              }
       401:
         body:
           application/json:
@@ -184,24 +321,7 @@ types:
       200:
         body:
           application/json:
-            type: ShowWithVisualIds[]
-            example: |
-              [
-                {
-                  "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
-                  "name": "Empty Show",
-                  "favorite": false,
-                  "visualIds": []
-                },
-                {
-                  "id": "2a8c4f4d-f6a3-47ba-80dc-7b6b268eb312",
-                  "name": "Show with Visuals",
-                  "favorite": true,
-                  "visualIds": [
-                    "4238af9f-6367-496a-891e-3617e2df121c"
-                  ]
-                }
-              ]
+            type: ShowCollection
 
   post:
     description: Create a new show
@@ -209,23 +329,12 @@ types:
     body:
       application/json:
         type: CreateShowRequest
-        example: |
-          {
-            "name": "New show"
-          }
     responses:
       201:
         description: The show has been created.
         body:
           application/json:
             type: ShowWithVisualIds
-            example: |
-              {
-                "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
-                "name": "New Show",
-                "favorite": false,
-                "visualIds": []
-              }
       409:
         description: A show with the same name already exists
         body:
@@ -237,8 +346,8 @@ types:
               }
 
   /{showId}:
-    is: [singleton]
     description: Details of a show
+    is: [singleton]
     uriParameters:
       showId:
         description: ID of the show
@@ -250,42 +359,20 @@ types:
           body:
             application/json:
               type: ShowWithVisuals
-              example: |
-                {
-                  "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
-                  "name": "Empty Show",
-                  "favorite": false,
-                  "visuals": [
-                    {
-                      "id": "4238af9f-6367-496a-891e-3617e2df121c",
-                      "name": "Stripe Visual"
-                    }
-                  ]
-                }
+
     put:
       description: Update details of a show
       is: [connectionAware, validatingBody]
       body:
         application/json:
           type: Show
-          example: |
-            {
-              "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
-              "name": "Updated name",
-              "favorite": true
-            }
+
       responses:
         200:
           description: The show has been updated.
           body:
             application/json:
               type: Show
-              example: |
-                {
-                  "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
-                  "name": "Updated name",
-                  "favorite": true
-                }
 
     delete:
       description: Deletes a show
@@ -303,15 +390,7 @@ types:
       200:
         body:
           application/json:
-            type: VisualWithShowId[]
-            example: |
-              [
-                {
-                  "id": "4238af9f-6367-496a-891e-3617e2df121c",
-                  "name": "Stripe Visual",
-                  "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
-                }
-              ]
+            type: VisualCollection
 
   post:
     description: Create a new visual
@@ -319,23 +398,12 @@ types:
     body:
       application/json:
         type: CreateVisualRequest
-        example: |
-          {
-            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
-            "name": "New Visual"
-          }
     responses:
       201:
         description: The visual has been created.
         body:
           application/json:
             type: VisualWithShowId
-            example: |
-              {
-                "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
-                "name": "New Visual",
-                "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
-              }
       409:
         description: A visual with the same name already exists.
         body:
@@ -347,8 +415,8 @@ types:
               }
 
   /{visualId}:
-    is: [singleton]
     description: Details of a visual
+    is: [singleton]
     uriParameters:
       visualId:
         type: UUID
@@ -359,34 +427,18 @@ types:
           body:
             application/json:
               type: VisualWithGroups
-              example: |
-                {
-                  "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
-                  "name": "New Visual",
-                  "groups": []
-                }
 
     put:
       description: Update details of a visual
       body:
         application/json:
           type: Visual
-          example: |
-            {
-              "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
-              "name": "Updated visual name"
-            }
       responses:
         200:
           description: The visual has been updated.
           body:
             application/json:
               type: Visual
-              example: |
-                {
-                  "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
-                  "name": "Updated visual name"
-                }
 
     delete:
       description: Delete a visual
@@ -394,3 +446,50 @@ types:
       responses:
         204:
           description: The visual has been deleted.
+
+/api/groups:
+  post:
+    description: Create a new group
+    is: [connectionAware, validatingBody]
+    body:
+      application/json:
+        type: CreateGroupRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: GroupWithEffect
+
+  /{groupId}:
+    description: Details of a group
+    is: [singleton]
+    uriParameters:
+      groupId:
+        type: UUID
+    get:
+      description: Get details of a group
+      responses:
+        200:
+          body:
+            application/json:
+              type: GroupWithEffect
+
+    put:
+      description: Update details of a group
+      is: [connectionAware, validatingBody]
+      body:
+        application/json:
+          type: GroupWithEffectType
+      responses:
+        200:
+          description: The group has been updated.
+          body:
+            application/json:
+              type: GroupWithEffect
+
+    delete:
+      description: Delete a group
+      is: [connectionAware]
+      responses:
+        204:
+          description: The group has been deleted.
