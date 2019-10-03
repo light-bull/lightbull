@@ -62,7 +62,7 @@ dns     | IP address of DNS server
 
 ### Create visual
 
-    curl -H "Authorization: Bearer ${jwt}" -X POST -d '{"show":"4f7f6045-bd3f-4fa3-9790-008df78571c1", "name":"Visual Name"}' 'http://localhost:8080/api/visuals'
+    curl -H "Authorization: Bearer ${jwt}" -X POST -d '{"showId":"4f7f6045-bd3f-4fa3-9790-008df78571c1", "name":"Visual Name"}' 'http://localhost:8080/api/visuals'
 
 ### Get visual details
 
@@ -84,11 +84,11 @@ dns     | IP address of DNS server
 
 ### Add group
 
-    curl -H "Authorization: Bearer ${jwt}" -X POST -d '{"visual":"61370850-aa63-44f7-a9d9-49b6292763b8", "parts":["horn_left", "horn_right"], "effect":"singlecolor"}' 'http://localhost:8080/api/groups'
+    curl -H "Authorization: Bearer ${jwt}" -X POST -d '{"visualId":"61370850-aa63-44f7-a9d9-49b6292763b8", "parts":["horn_left", "horn_right"], "effectType":"singlecolor"}' 'http://localhost:8080/api/groups'
 
 ### Update group
 
-    curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"parts": ["horn_left"], "effect":"othereffect"}' 'http://localhost:8080/api/groups/e8a6b7c4-d2fe-4701-9d73-fe2e8377d0fb'
+    curl -H "Authorization: Bearer ${jwt}" -X PUT -d '{"parts": ["horn_left"], "effectType":"othereffect"}' 'http://localhost:8080/api/groups/e8a6b7c4-d2fe-4701-9d73-fe2e8377d0fb'
 
 It's possible to set only "parts" or "effect".
 
