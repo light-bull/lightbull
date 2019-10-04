@@ -168,7 +168,8 @@ types:
         "visuals": [
           {
             "id": "4238af9f-6367-496a-891e-3617e2df121c",
-            "name": "Stripe Visual"
+            "name": "Stripe Visual",
+            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
           }
         ]
       }
@@ -187,7 +188,7 @@ types:
   VisualCollection:
     type: object
     properties:
-      visuals: VisualWithShowId[]
+      visuals: Visual[]
     example: |
       {
         "visuals": [
@@ -204,20 +205,11 @@ types:
     properties:
       id: UUID
       name: string
-    example: |
-      {
-        "id": "4238af9f-6367-496a-891e-3617e2df121c",
-        "name": "Stripe Visual"
-      }
-
-  VisualWithShowId:
-    type: Visual
-    properties:
       showId: UUID
     example: |
       {
-        "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
-        "name": "New Visual",
+        "id": "4238af9f-6367-496a-891e-3617e2df121c",
+        "name": "Stripe Visual",
         "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
       }
 
@@ -229,6 +221,7 @@ types:
       {
         "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
         "name": "New Visual",
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
         "groups": []
       }
 
@@ -249,6 +242,7 @@ types:
     type: object
     properties:
       id: UUID
+      visualId: UUID
       parts: string[]
 
   GroupWithEffectType:
@@ -258,11 +252,12 @@ types:
     example: |
       {
         "id": "ff0a2c40-da2c-485c-a53d-720a0a183110",
-         "parts": [
-           "horn_left",
-           "horn_right"
-         ],
-         "effectType": "singlecolor"
+        "visualId": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "parts": [
+          "horn_left",
+          "horn_right"
+        ],
+        "effectType": "singlecolor"
       }
 
   GroupWithEffect:
@@ -272,6 +267,7 @@ types:
     example: |
       {
         "id": "ff0a2c40-da2c-485c-a53d-720a0a183110",
+        "visualId": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
         "parts": [
           "horn_left",
           "horn_right"

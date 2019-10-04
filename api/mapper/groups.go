@@ -8,9 +8,10 @@ import (
 )
 
 type GroupJSON struct {
-	ID     uuid.UUID  `json:"id"`
-	Parts  []string   `json:"parts"`
-	Effect EffectJSON `json:"effect"`
+	ID       uuid.UUID  `json:"id"`
+	VisualId uuid.UUID  `json:"visualId"`
+	Parts    []string   `json:"parts"`
+	Effect   EffectJSON `json:"effect"`
 }
 
 type EffectJSON struct {
@@ -18,11 +19,12 @@ type EffectJSON struct {
 	Parameters []*parameters.Parameter `json:"parameters"`
 }
 
-func MapGroup(group *shows.Group) GroupJSON {
+func MapGroup(visualId uuid.UUID, group *shows.Group) GroupJSON {
 	data := GroupJSON{
-		ID:     group.ID,
-		Parts:  make([]string, len(group.Parts())),
-		Effect: MapEffect(&group.Effect),
+		ID:       group.ID,
+		VisualId: visualId,
+		Parts:    make([]string, len(group.Parts())),
+		Effect:   MapEffect(&group.Effect),
 	}
 
 	copy(data.Parts, group.Parts())

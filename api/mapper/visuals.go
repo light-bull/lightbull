@@ -6,12 +6,8 @@ import (
 )
 
 type VisualJSON struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
-}
-
-type VisualWithShowIdJSON struct {
-	VisualJSON
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
 	ShowId uuid.UUID `json:"showId"`
 }
 
@@ -21,42 +17,36 @@ type VisualWithGroupsJson struct {
 }
 
 type VisualCollectionJSON struct {
-	Visuals []VisualWithShowIdJSON `json:"visuals"`
+	Visuals []VisualJSON `json:"visuals"`
 }
 
-func MapVisual(visual *shows.Visual) VisualJSON {
+func MapVisual(showId uuid.UUID, visual *shows.Visual) VisualJSON {
 	return VisualJSON{
-		ID:   visual.ID,
-		Name: visual.Name,
+		ID:     visual.ID,
+		Name:   visual.Name,
+		ShowId: showId,
 	}
 }
 
-func MapVisualWithShowId(showId uuid.UUID, visual *shows.Visual) VisualWithShowIdJSON {
-	return VisualWithShowIdJSON{
-		VisualJSON: MapVisual(visual),
-		ShowId:     showId,
-	}
-}
-
-func MapVisualWithGroups(visual *shows.Visual) VisualWithGroupsJson {
+func MapVisualWithGroups(showId uuid.UUID, visual *shows.Visual) VisualWithGroupsJson {
 	data := VisualWithGroupsJson{
-		VisualJSON: MapVisual(visual),
+		VisualJSON: MapVisual(showId, visual),
 		Groups:     make([]GroupJSON, len(visual.Groups())),
 	}
 
 	for i, group := range visual.Groups() {
-		data.Groups[i] = MapGroup(group)
+		data.Groups[i] = MapGroup(visual.ID, group)
 	}
 
 	return data
 }
 
 func MapAllVisualsFromShows(shows []*shows.Show) VisualCollectionJSON {
-	var visuals = make([]VisualWithShowIdJSON, 0)
+	var visuals = make([]VisualJSON, 0)
 
 	for _, show := range shows {
 		for _, visual := range show.Visuals() {
-			visuals = append(visuals, MapVisualWithShowId(show.ID, visual))
+			visuals = append(visuals, MapVisual(show.ID, visual))
 		}
 	}
 

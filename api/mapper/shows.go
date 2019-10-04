@@ -53,7 +53,7 @@ func MapShowWithVisuals(show *shows.Show) ShowWithVisualsJSON {
 	}
 
 	for i, visual := range show.Visuals() {
-		data.Visuals[i] = MapVisual(visual)
+		data.Visuals[i] = MapVisual(show.ID, visual)
 	}
 
 	return data

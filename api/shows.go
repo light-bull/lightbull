@@ -142,7 +142,7 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		visual := show.NewVisual(data.Name)
 		api.eventhub.PublishNew(events.VisualAdded, visual, show, utils.GetConnectionID(r))
 
-		utils.WriteJSONWithStatus(&w, mapper.MapVisualWithGroups(visual), http.StatusCreated)
+		utils.WriteJSONWithStatus(&w, mapper.MapVisualWithGroups(show.ID, visual), http.StatusCreated)
 	} else {
 		utils.WriteMethodNotAllowed(&w)
 	}
@@ -166,7 +166,7 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, mapper.MapVisualWithGroups(visual))
+		utils.WriteJSON(&w, mapper.MapVisualWithGroups(show.ID, visual))
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -184,7 +184,7 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 
 		api.eventhub.PublishNew(events.VisualChanged, visual, show, utils.GetConnectionID(r))
 
-		utils.WriteJSON(&w, mapper.MapVisualWithGroups(visual))
+		utils.WriteJSON(&w, mapper.MapVisualWithGroups(show.ID, visual))
 	} else if r.Method == "DELETE" {
 		show.DeleteVisual(visual)
 		api.eventhub.PublishNew(events.VisualDeleted, visual, show, utils.GetConnectionID(r))
@@ -229,7 +229,7 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 
 		api.eventhub.PublishNew(events.GroupAdded, group, show, utils.GetConnectionID(r))
 
-		utils.WriteJSON(&w, mapper.MapGroup(group))
+		utils.WriteJSON(&w, mapper.MapGroup(visual.ID, group))
 	} else {
 		utils.WriteMethodNotAllowed(&w)
 	}
@@ -252,7 +252,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, mapper.MapGroup(group))
+		utils.WriteJSON(&w, mapper.MapGroup(visual.ID, group))
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -266,7 +266,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(data.Parts) != 0 {
-			group.SetParts(data.Parts)
+			err = group.SetParts(data.Parts)
 			if err != nil {
 				utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 				return
@@ -274,7 +274,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if data.EffectType != "" {
-			group.SetEffect(data.EffectType)
+			err = group.SetEffect(data.EffectType)
 			if err != nil {
 				utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 				return
@@ -282,7 +282,7 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 		}
 
 		api.eventhub.PublishNew(events.GroupChanged, group, show, utils.GetConnectionID(r))
-		utils.WriteJSON(&w, mapper.MapGroup(group))
+		utils.WriteJSON(&w, mapper.MapGroup(visual.ID, group))
 	} else if r.Method == "DELETE" {
 		visual.DeleteGroup(group)
 		api.eventhub.PublishNew(events.GroupDeleted, group, show, utils.GetConnectionID(r))
