@@ -78,7 +78,7 @@ func (visual *Visual) NewGroup(parts []string, effect string) (*Group, error) {
 	return group, nil
 }
 
-// DeleteGroup adds a new group with an effect to the visual.
+// DeleteGroup deletes the given group from the visual
 func (visual *Visual) DeleteGroup(group *Group) {
 	visual.mux.Lock()
 	defer visual.mux.Unlock()
