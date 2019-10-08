@@ -33,6 +33,9 @@ func NewParameter(key string, datatype string, name string) *Parameter {
 	if datatype == Color {
 		parameter.cur = NewColor()
 		parameter.def = NewColor()
+	} else if datatype == UInt8 {
+		parameter.cur = NewInt8()
+		parameter.def = NewInt8()
 	} else {
 		return nil
 	}

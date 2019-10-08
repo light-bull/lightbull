@@ -28,7 +28,7 @@ func NewColor() *ColorType {
 
 // Type returns "color"
 func (c *ColorType) Type() string {
-	return "color"
+	return Color
 }
 
 // Get the color
