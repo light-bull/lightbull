@@ -3,6 +3,8 @@ package effects
 const (
 	// SingleColor is the single color effect
 	SingleColor = "singlecolor"
+	// Blink is the blink effect
+	Blink = "blink"
 )
 
 var effectNames map[string]string
@@ -14,6 +16,7 @@ func GetEffects() map[string]string {
 		effectNames = make(map[string]string)
 
 		effectNames[SingleColor] = NewEffect(SingleColor).Name()
+		effectNames[Blink] = NewEffect(Blink).Name()
 	}
 
 	return effectNames
