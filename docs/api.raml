@@ -188,14 +188,15 @@ types:
   VisualCollection:
     type: object
     properties:
-      visuals: Visual[]
+      visuals: VisualWithGroupIds[]
     example: |
       {
         "visuals": [
           {
             "id": "4238af9f-6367-496a-891e-3617e2df121c",
             "name": "Stripe Visual",
-            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+            "groupIds": []
           }
         ]
       }
@@ -211,6 +212,18 @@ types:
         "id": "4238af9f-6367-496a-891e-3617e2df121c",
         "name": "Stripe Visual",
         "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+      }
+
+  VisualWithGroupIds:
+    type: Visual
+    properties:
+      groupIds: UUID[]
+    example: |
+      {
+        "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "name": "Visual Name",
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "groupIds": ["ff0a2c40-da2c-485c-a53d-720a0a183110"]
       }
 
   VisualWithGroups:
