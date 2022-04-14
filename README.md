@@ -51,3 +51,16 @@ Control server
 `lightbull-arch-os run` runs the control server, the web interface is accessible on port 8080.
 
 Some settings can be changed using the configuration file which can be places in `/etc/lightbull/config.yaml` or `./config.yaml`.
+
+Code checks
+===========
+
+We use pre-commit for code and styleguide checks.
+
+Install it once as git hook:
+
+    pre-commit install
+
+Run pre-commit manually:
+
+    pre-commit run --all-files

@@ -166,13 +166,13 @@ func (system *System) SetEthernetConfig(c EthernetConfig) error {
 	system.ethMux.Lock()
 
 	// next, check for changes. if we do not have a change, we do not reconfigure the network
-	// in dhcp client mode, do not compare ip, dns and dns since they are set by the controller
+	// in dhcp client mode, do not compare ip, dns and dns since they are not set by the controller
 	changed := true
 	if system.ethMode == c.Mode && c.Mode == EthDhcpClient {
 		changed = false
 	} else if system.ethMode == c.Mode &&
 		system.ethIP.Equal(newIP) &&
-		bytes.Compare(system.ethMask, newMask) == 0 &&
+		bytes.Equal(system.ethMask, newMask) &&
 		system.ethGateway.Equal(newGateway) &&
 		system.ethDNS.Equal(newDNS) {
 		changed = false

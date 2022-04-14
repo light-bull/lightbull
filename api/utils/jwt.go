@@ -16,8 +16,6 @@ const (
 
 // JWTManager implements the easy creation and validation of JSON Web Tokens
 type JWTManager struct {
-	persistence *persistence.Persistence
-
 	key []byte
 }
 
@@ -32,7 +30,7 @@ func NewJWTManager(persistence *persistence.Persistence) (*JWTManager, error) {
 	data := format{}
 
 	if persistence.HasConfig("jwt") {
-		// config is there -> load it of fail
+		// config is there -> load it or fail
 		if err := persistence.LoadConfig("jwt", &data); err != nil {
 			return nil, err
 		}
@@ -72,7 +70,7 @@ func (jwtmanager *JWTManager) Check(tokenString string) bool {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("Invalid signing method")
+			return nil, errors.New("invalid signing method")
 		}
 
 		// give signing key to parser
