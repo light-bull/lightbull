@@ -8,14 +8,13 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
 
 	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/events"
+	"github.com/light-bull/lightbull/frontend"
 	"github.com/light-bull/lightbull/hardware"
 	"github.com/light-bull/lightbull/persistence"
 	"github.com/light-bull/lightbull/shows"
-	_ "github.com/light-bull/lightbull/statik" // needed for statik
 )
 
 // API implements the REST API
@@ -53,12 +52,7 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.Ev
 	api.initWS(router)
 
 	// Frontend
-	statikFS, err := fs.New()
-	if err != nil {
-		return nil, err
-	}
-
-	router.PathPrefix("/web").Handler(http.StripPrefix("/web/", http.FileServer(statikFS)))
+	router.PathPrefix("/web").Handler(http.StripPrefix("/web/", http.FileServer(http.FS(frontend.Frontend))))
 
 	// Redirect to frontend
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
