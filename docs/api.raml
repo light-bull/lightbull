@@ -1,0 +1,595 @@
+#%RAML 1.0
+---
+title: LightBull
+securedBy: [jwt]
+
+securitySchemes:
+  jwt:
+    description: |
+      Use a JWT obtained via /api/auth to authenticate
+    type: x-bearer-jwt
+    describedBy:
+      headers:
+        Authorization:
+          description: |
+            Contains the JWT using the Bearer Authorization scheme, e. g. Bearer eyJhbGciOiJIUzUxMiIsIn...
+          type: string
+
+traits:
+  public:
+    securedBy: []
+
+  secured:
+    securedBy: [jwt]
+    responses:
+      401:
+        description: The provided JWT was invalid, expired or missing.
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Invalid token"
+              }
+
+  validatingBody:
+    responses:
+      400:
+        description: The request body was malformed or contained invalid field values.
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Invalid request body"
+              }
+
+  connectionAware:
+    headers:
+      X-Lightbull-Connection-ID?:
+        description: |
+          Contains the connection ID of a WebSocket-Connection to identify which client has performed the request.
+
+  notFound:
+    responses:
+      404:
+        description: The resource does not exist.
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Not found"
+              }
+
+  singleton:
+    is: [notFound]
+
+types:
+  UUID:
+    displayName: uuid
+    type: string
+    pattern: ^[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12}$
+
+  Error:
+    type: object
+    properties:
+      error: string
+
+  AuthenticationWithPassword:
+    type: object
+    properties:
+      password: string
+    example: |
+      {
+        "password": "secretpassword"
+      }
+
+  JWTAuthentication:
+    type: object
+    properties:
+      jwt: string
+    example: |
+      {
+        "jwt": "eyJhbGciOiJIUzUxMiIsIn..."
+      }
+
+  EffectType:
+    type: string
+    enum: [singlecolor]
+
+  CreateShowRequest:
+    type: object
+    properties:
+      name: string
+    example: |
+      {
+        "name": "New show"
+      }
+
+  ShowCollection:
+    type: object
+    properties:
+      shows: ShowWithVisualIds[]
+    example: |
+      {
+        "shows": [
+          {
+            "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+            "name": "Empty Show",
+            "favorite": false,
+            "visualIds": []
+          },
+          {
+            "id": "2a8c4f4d-f6a3-47ba-80dc-7b6b268eb312",
+            "name": "Show with Visuals",
+            "favorite": true,
+            "visualIds": [
+              "4238af9f-6367-496a-891e-3617e2df121c"
+            ]
+          }
+        ]
+      }
+
+  Show:
+    type: object
+    properties:
+      id: UUID
+      name: string
+      favorite: boolean
+    example: |
+      {
+        "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "name": "Updated name",
+        "favorite": true
+      }
+
+  ShowWithVisualIds:
+    type: Show
+    properties:
+      visualIds: UUID[]
+    example: |
+      {
+        "id": "2a8c4f4d-f6a3-47ba-80dc-7b6b268eb312",
+        "name": "Show with Visuals",
+        "favorite": true,
+        "visualIds": []
+      }
+
+  ShowWithVisuals:
+    type: Show
+    properties:
+      visuals: Visual[]
+    example: |
+      {
+        "id": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "name": "Empty Show",
+        "favorite": false,
+        "visuals": [
+          {
+            "id": "4238af9f-6367-496a-891e-3617e2df121c",
+            "name": "Stripe Visual",
+            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+          }
+        ]
+      }
+
+  CreateVisualRequest:
+    type: object
+    properties:
+      showId: UUID
+      name: string
+    example: |
+      {
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "name": "New Visual"
+      }
+
+  VisualCollection:
+    type: object
+    properties:
+      visuals: VisualWithGroupIds[]
+    example: |
+      {
+        "visuals": [
+          {
+            "id": "4238af9f-6367-496a-891e-3617e2df121c",
+            "name": "Stripe Visual",
+            "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+            "groupIds": []
+          }
+        ]
+      }
+
+  Visual:
+    type: object
+    properties:
+      id: UUID
+      name: string
+      showId: UUID
+    example: |
+      {
+        "id": "4238af9f-6367-496a-891e-3617e2df121c",
+        "name": "Stripe Visual",
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9"
+      }
+
+  VisualWithGroupIds:
+    type: Visual
+    properties:
+      groupIds: UUID[]
+    example: |
+      {
+        "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "name": "Visual Name",
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "groupIds": ["ff0a2c40-da2c-485c-a53d-720a0a183110"]
+      }
+
+  VisualWithGroups:
+    type: Visual
+    properties:
+      groups: GroupWithEffect[]
+    example: |
+      {
+        "id": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "name": "New Visual",
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "groups": []
+      }
+
+  CreateGroupRequest:
+    type: object
+    properties:
+      visualId: UUID
+      parts: string[]
+      effectType: EffectType
+    example: |
+      {
+        "visualId": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "parts": ["horn_left", "horn_right"],
+        "effectType": "singlecolor"
+      }
+
+  Group:
+    type: object
+    properties:
+      id: UUID
+      visualId: UUID
+      parts: string[]
+
+  GroupWithEffectType:
+    type: Group
+    properties:
+      effectType: EffectType
+    example: |
+      {
+        "id": "ff0a2c40-da2c-485c-a53d-720a0a183110",
+        "visualId": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "parts": [
+          "horn_left",
+          "horn_right"
+        ],
+        "effectType": "singlecolor"
+      }
+
+  GroupWithEffect:
+    type: Group
+    properties:
+      effect: Effect
+    example: |
+      {
+        "id": "ff0a2c40-da2c-485c-a53d-720a0a183110",
+        "visualId": "0faca02e-c929-4a10-bc5c-fae725cc9acb",
+        "parts": [
+          "horn_left",
+          "horn_right"
+        ],
+        "effect": {
+          "type": "singlecolor",
+          "parameters": []
+        }
+      }
+
+  Effect:
+    type: object
+    properties:
+      type: string
+      parameters: Parameter[]
+    example: |
+      {
+        "type": "singlecolor",
+        "parameters": []
+      }
+
+  Parameter:
+    type: string
+
+  CurrentShowAndVisual:
+    type: object
+    properties:
+      showId?: UUID
+      visualId?: UUID
+    example: |
+      {
+        "showId": "03f515e3-cfbc-451a-8eec-54876db813e9",
+        "visualId": "4238af9f-6367-496a-891e-3617e2df121c"
+      }
+
+  FeatureTypes:
+    type: string
+    enum: [ethernet]
+
+  EffectNames:
+    type: object
+    properties:
+      //: string
+    example: |
+      {
+        "singlecolor": "Single Color"
+      }
+
+  SystemConfiguration:
+    type: object
+    properties:
+      parts: string[]
+      effects: EffectNames
+      features: FeatureTypes[]
+    example: |
+      {
+        "parts": ["horn_left", "horn_right"],
+        "effects": {
+          "singlecolor": "Single Color"
+        },
+        "features": ["ethernet"]
+      }
+
+/api/auth:
+  description: Authentication endpoint
+  is: [public]
+  post:
+    description: Retrieve a JWT in exchange for a password
+    body:
+      application/json:
+        type: AuthenticationWithPassword
+    responses:
+      200:
+        body:
+          application/json:
+            type: JWTAuthentication
+      401:
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Invalid password"
+              }
+
+/api/shows:
+  description: Collection of shows
+  is: [secured]
+  get:
+    description: Get a list of shows
+    responses:
+      200:
+        body:
+          application/json:
+            type: ShowCollection
+
+  post:
+    description: Create a new show
+    is: [connectionAware, validatingBody]
+    body:
+      application/json:
+        type: CreateShowRequest
+    responses:
+      201:
+        description: The show has been created.
+        body:
+          application/json:
+            type: ShowWithVisualIds
+      409:
+        description: A show with the same name already exists
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Show with name New Show already exists"
+              }
+
+  /{showId}:
+    description: Details of a show
+    is: [singleton]
+    uriParameters:
+      showId:
+        description: ID of the show
+        type: UUID
+    get:
+      description: Get details of a show
+      responses:
+        200:
+          body:
+            application/json:
+              type: ShowWithVisuals
+
+    put:
+      description: Update details of a show
+      is: [connectionAware, validatingBody]
+      body:
+        application/json:
+          type: Show
+
+      responses:
+        200:
+          description: The show has been updated.
+          body:
+            application/json:
+              type: ShowWithVisuals
+
+    delete:
+      description: Deletes a show
+      is: [connectionAware]
+      responses:
+        204:
+          description: The show has been deleted.
+
+/api/visuals:
+  description: Collection of visuals
+  is: [secured]
+  get:
+    description: Get a list of visuals
+    responses:
+      200:
+        body:
+          application/json:
+            type: VisualCollection
+
+  post:
+    description: Create a new visual
+    is: [connectionAware, validatingBody]
+    body:
+      application/json:
+        type: CreateVisualRequest
+    responses:
+      201:
+        description: The visual has been created.
+        body:
+          application/json:
+            type: VisualWithGroups
+      409:
+        description: A visual with the same name already exists.
+        body:
+          application/json:
+            type: Error
+            example: |
+              {
+                "error": "Visual with name New Visual already exists"
+              }
+
+  /{visualId}:
+    description: Details of a visual
+    is: [singleton]
+    uriParameters:
+      visualId:
+        type: UUID
+    get:
+      description: Get details of a visual
+      responses:
+        200:
+          body:
+            application/json:
+              type: VisualWithGroups
+
+    put:
+      description: Update details of a visual
+      body:
+        application/json:
+          type: Visual
+      responses:
+        200:
+          description: The visual has been updated.
+          body:
+            application/json:
+              type: VisualWithGroups
+
+    delete:
+      description: Delete a visual
+      is: [connectionAware]
+      responses:
+        204:
+          description: The visual has been deleted.
+
+/api/groups:
+  description: Groups of parts and effects
+  is: [secured]
+  post:
+    description: Create a new group
+    is: [connectionAware, validatingBody]
+    body:
+      application/json:
+        type: CreateGroupRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: GroupWithEffect
+
+  /{groupId}:
+    description: Details of a group
+    is: [singleton]
+    uriParameters:
+      groupId:
+        type: UUID
+    get:
+      description: Get details of a group
+      responses:
+        200:
+          body:
+            application/json:
+              type: GroupWithEffect
+
+    put:
+      description: Update details of a group
+      is: [connectionAware, validatingBody]
+      body:
+        application/json:
+          type: GroupWithEffectType
+      responses:
+        200:
+          description: The group has been updated.
+          body:
+            application/json:
+              type: GroupWithEffect
+
+    delete:
+      description: Delete a group
+      is: [connectionAware]
+      responses:
+        204:
+          description: The group has been deleted.
+
+/api/current:
+  description: Information about the current show and visual
+  is: [secured]
+  get:
+    description: Get the current show and visual
+    responses:
+      200:
+        body:
+          application/json:
+            type: CurrentShowAndVisual
+
+  put:
+    description: Set the current show and visual
+    is: [notFound]
+    body:
+      application/json:
+        type: CurrentShowAndVisual
+    responses:
+      200:
+        description: The current show and visual have been set.
+        body:
+          application/json:
+            type: CurrentShowAndVisual
+
+  delete:
+    description: Clear the current visual
+    responses:
+      200:
+        description: The current visual has been cleared.
+        body:
+          application/json:
+            type: CurrentShowAndVisual
+
+/api/config:
+  description: System configuration
+  is: [secured]
+  get:
+    description: Retrieve system configuration
+    responses:
+      200:
+        body:
+          application/json:
+            type: SystemConfiguration

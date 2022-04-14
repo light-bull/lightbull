@@ -2,6 +2,7 @@ package events
 
 import (
 	"github.com/google/uuid"
+	"github.com/light-bull/lightbull/api/mapper"
 	"github.com/light-bull/lightbull/shows"
 )
 
@@ -51,7 +52,7 @@ func (eventhub *EventHub) PublishNew(topic string, payload interface{}, associat
 	// if the payload is a show, serialize only the shortened data
 	show, ok := payload.(*shows.Show)
 	if ok {
-		payload = show.GetData()
+		payload = mapper.MapShowWithVisuals(show)
 	}
 
 	// create event and publish it

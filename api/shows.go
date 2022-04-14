@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/light-bull/lightbull/api/mapper"
 	"github.com/light-bull/lightbull/api/utils"
 	"github.com/light-bull/lightbull/events"
 	"github.com/light-bull/lightbull/shows"
@@ -33,27 +33,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
-		shows := api.shows.Shows()
-
-		type format struct {
-			ID       uuid.UUID   `json:"id"`
-			Name     string      `json:"name"`
-			Favorite bool        `json:"favorite"`
-			Visuals  []uuid.UUID `json:"visuals"`
-		}
-		data := make([]format, len(shows))
-
-		for i, show := range shows {
-			data[i].ID = show.ID
-			data[i].Name = show.Name
-			data[i].Favorite = show.Favorite
-			data[i].Visuals = make([]uuid.UUID, len(show.Visuals()))
-			for j, visual := range show.Visuals() {
-				data[i].Visuals[j] = visual.ID
-			}
-		}
-
-		utils.WriteJSON(&w, data)
+		utils.WriteJSON(&w, mapper.MapShows(api.shows.Shows()))
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
@@ -69,7 +49,7 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		// create new show
 		show, err := api.shows.NewShow(data.Name, data.Favorite)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -78,9 +58,9 @@ func (api *API) handleShows(w http.ResponseWriter, r *http.Request) {
 		api.eventhub.PublishNew(events.ShowAdded, show, show, utils.GetConnectionID(r))
 
 		// return show data, especially the ID may be interesting
-		utils.WriteJSON(&w, show)
+		utils.WriteJSONWithStatus(&w, mapper.MapShowWithVisualIds(show), http.StatusCreated)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -96,12 +76,12 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 
 	show := api.shows.FindShow(id)
 	if show == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusBadRequest)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, show.GetData())
+		utils.WriteJSON(&w, mapper.MapShowWithVisuals(show))
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -111,7 +91,6 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -122,11 +101,13 @@ func (api *API) handleShowDetails(w http.ResponseWriter, r *http.Request) {
 		show.Favorite = data.Favorite
 
 		api.eventhub.PublishNew(events.ShowChanged, show, show, utils.GetConnectionID(r))
+		utils.WriteJSON(&w, mapper.MapShowWithVisuals(show))
 	} else if r.Method == "DELETE" {
 		api.shows.DeleteShow(show)
 		api.eventhub.PublishNew(events.ShowDeleted, show, show, utils.GetConnectionID(r))
+		w.WriteHeader(http.StatusNoContent)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -137,41 +118,23 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
-		type visualFormat struct {
-			Show uuid.UUID `json:"show"`
-			ID   uuid.UUID `json:"id"`
-			Name string    `json:"name"`
-		}
-
-		var result []visualFormat
-		for _, show := range api.shows.Shows() {
-			for _, visual := range show.Visuals() {
-				visual := visualFormat{
-					Show: show.ID,
-					ID:   visual.ID,
-					Name: visual.Name,
-				}
-				result = append(result, visual)
-			}
-		}
-		utils.WriteJSON(&w, result)
+		utils.WriteJSON(&w, mapper.MapAllVisualsFromShows(api.shows.Shows()))
 	} else if r.Method == "POST" {
 		// get data from request
 		type format struct {
-			Name string `json:"name"`
-			Show string `json:"show"`
+			Name   string `json:"name"`
+			ShowId string `json:"showId"`
 		}
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
 		// get show
-		show := api.shows.FindShow(data.Show)
+		show := api.shows.FindShow(data.ShowId)
 		if show == nil {
-			http.Error(w, "Invalid or unknown show ID", http.StatusBadRequest)
+			utils.WriteError(&w, "Invalid or unknown show ID", http.StatusBadRequest)
 			return
 		}
 
@@ -179,9 +142,9 @@ func (api *API) handleVisuals(w http.ResponseWriter, r *http.Request) {
 		visual := show.NewVisual(data.Name)
 		api.eventhub.PublishNew(events.VisualAdded, visual, show, utils.GetConnectionID(r))
 
-		utils.WriteJSON(&w, visual)
+		utils.WriteJSONWithStatus(&w, mapper.MapVisualWithGroups(show.ID, visual), http.StatusCreated)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -198,12 +161,12 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 	show, visual := api.shows.FindVisual(id)
 
 	if visual == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusBadRequest)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, visual)
+		utils.WriteJSON(&w, mapper.MapVisualWithGroups(show.ID, visual))
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
@@ -212,7 +175,6 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -221,11 +183,14 @@ func (api *API) handleVisualDetails(w http.ResponseWriter, r *http.Request) {
 		}
 
 		api.eventhub.PublishNew(events.VisualChanged, visual, show, utils.GetConnectionID(r))
+
+		utils.WriteJSON(&w, mapper.MapVisualWithGroups(show.ID, visual))
 	} else if r.Method == "DELETE" {
 		show.DeleteVisual(visual)
 		api.eventhub.PublishNew(events.VisualDeleted, visual, show, utils.GetConnectionID(r))
+		w.WriteHeader(http.StatusNoContent)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -238,36 +203,35 @@ func (api *API) handleGroups(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		// get data from request
 		type format struct {
-			Visual string   `json:"visual"`
-			Parts  []string `json:"parts"`
-			Effect string   `json:"effect"`
+			VisualId   string   `json:"visualId"`
+			Parts      []string `json:"parts"`
+			EffectType string   `json:"effectType"`
 		}
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
 		// get visual
-		show, visual := api.shows.FindVisual(data.Visual)
+		show, visual := api.shows.FindVisual(data.VisualId)
 		if visual == nil {
-			http.Error(w, "Invalid or unknown visual ID", http.StatusBadRequest)
+			utils.WriteError(&w, "Invalid or unknown visual ID", http.StatusBadRequest)
 			return
 		}
 
 		// add group
-		group, err := visual.NewGroup(data.Parts, data.Effect)
+		group, err := visual.NewGroup(data.Parts, data.EffectType)
 		if err != nil {
-			http.Error(w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
+			utils.WriteError(&w, "Failed to create group: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		api.eventhub.PublishNew(events.GroupAdded, group, show, utils.GetConnectionID(r))
 
-		utils.WriteJSON(&w, group)
+		utils.WriteJSON(&w, mapper.MapGroup(visual.ID, group))
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -283,48 +247,48 @@ func (api *API) handleGroupDetails(w http.ResponseWriter, r *http.Request) {
 
 	show, visual, group := api.shows.FindGroup(id)
 	if group == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusBadRequest)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, group)
+		utils.WriteJSON(&w, mapper.MapGroup(visual.ID, group))
 	} else if r.Method == "PUT" {
 		// get data from request
 		type format struct {
-			Parts  []string `json:"parts"`
-			Effect string   `json:"effect"`
+			Parts      []string `json:"parts"`
+			EffectType string   `json:"effectType"`
 		}
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
 		if len(data.Parts) != 0 {
-			group.SetParts(data.Parts)
+			err = group.SetParts(data.Parts)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 				return
 			}
 		}
 
-		if data.Effect != "" {
-			group.SetEffect(data.Effect)
+		if data.EffectType != "" {
+			err = group.SetEffect(data.EffectType)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, err.Error(), http.StatusBadRequest)
 				return
 			}
 		}
 
 		api.eventhub.PublishNew(events.GroupChanged, group, show, utils.GetConnectionID(r))
+		utils.WriteJSON(&w, mapper.MapGroup(visual.ID, group))
 	} else if r.Method == "DELETE" {
 		visual.DeleteGroup(group)
-
 		api.eventhub.PublishNew(events.GroupDeleted, group, show, utils.GetConnectionID(r))
+		w.WriteHeader(http.StatusNoContent)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -340,7 +304,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 
 	show, _, _, parameter := api.shows.FindParameter(id)
 	if parameter == nil {
-		http.Error(w, "Invalid or unknown ID", http.StatusBadRequest)
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
 		return
 	}
 
@@ -355,7 +319,6 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
@@ -364,7 +327,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 		if data.Current != nil {
 			err = parameter.SetFromJSON(*data.Current)
 			if err != nil {
-				http.Error(w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
 				return
 			}
 			eventTopic = events.ParameterChanged
@@ -374,7 +337,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 		if data.Default != nil {
 			err = parameter.SetDefaultFromJSON(*data.Default)
 			if err != nil {
-				http.Error(w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
+				utils.WriteError(&w, "Failed to set parameter: "+err.Error(), http.StatusBadRequest)
 				return
 			}
 
@@ -383,7 +346,7 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 
 		api.eventhub.PublishNew(eventTopic, parameter, show, utils.GetConnectionID(r))
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
@@ -394,79 +357,64 @@ func (api *API) handleCurrent(w http.ResponseWriter, r *http.Request) {
 	utils.EnableCors(&w)
 
 	if r.Method == "GET" {
-		utils.WriteJSON(&w, api.helperCurrentGet())
+		utils.WriteJSON(&w, api.getCurrentShowAndVisual())
 	} else if r.Method == "PUT" {
 		// get data
 		type format struct {
-			Show   string `json:"show"`
-			Visual string `json:"visual"`
-			Blank  bool   `json:"blank"`
+			ShowId   string `json:"showId"`
+			VisualId string `json:"visualId"`
 		}
 		data := format{}
 		err := utils.ParseJSON(&w, r, &data)
 		if err != nil {
-			http.Error(w, "Invalid data format", http.StatusBadRequest)
 			return
 		}
 
-		// handle input
-		if data.Blank == true {
-			// blank -> reset current visual, but keep show
-			if api.shows.CurrentShow() != nil {
-				api.shows.ClearCurrentVisual()
-			}
-		} else {
-			// get show and visual
-			var show *shows.Show
-			var visual *shows.Visual
+		// get show and visual
+		var show *shows.Show
+		var visual *shows.Visual
 
-			if data.Show != "" {
-				show = api.shows.FindShow(data.Show)
-				if show == nil {
-					http.Error(w, "Invalid or unknown show ID", http.StatusBadRequest)
-					return
-				}
-			}
-
-			if data.Visual != "" {
-				_, visual = api.shows.FindVisual(data.Visual)
-				if visual == nil {
-					http.Error(w, "Invalid or unknown visual ID", http.StatusBadRequest)
-					return
-				}
-			}
-
-			// set current show and visual
-			err := api.shows.SetCurrentVisual(show, visual)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+		if data.ShowId != "" {
+			show = api.shows.FindShow(data.ShowId)
+			if show == nil {
+				utils.WriteError(&w, "Invalid or unknown show ID", http.StatusNotFound)
 				return
 			}
 		}
 
+		if data.VisualId != "" {
+			_, visual = api.shows.FindVisual(data.VisualId)
+			if visual == nil {
+				utils.WriteError(&w, "Invalid or unknown visual ID", http.StatusNotFound)
+				return
+			}
+		}
+
+		// set current show and visual
+		err = api.shows.SetCurrentVisual(show, visual)
+		if err != nil {
+			utils.WriteError(&w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		currentShowAndVisual := api.getCurrentShowAndVisual()
+
 		// Send event
-		api.eventhub.PublishNew(events.CurrentChanged, api.helperCurrentGet(), nil, utils.GetConnectionID(r))
+		api.eventhub.PublishNew(events.CurrentChanged, currentShowAndVisual, nil, utils.GetConnectionID(r))
+		utils.WriteJSON(&w, currentShowAndVisual)
+	} else if r.Method == "DELETE" {
+		if api.shows.CurrentShow() != nil {
+			api.shows.ClearCurrentVisual()
+		}
+
+		utils.WriteJSON(&w, api.getCurrentShowAndVisual())
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
 
-// helperCurrentGet returns a struct with the current show and visual
-func (api *API) helperCurrentGet() interface{} {
-	type format struct {
-		Show   *uuid.UUID `json:"show"`
-		Visual *uuid.UUID `json:"visual"`
-	}
-	data := format{}
+// getCurrentShowAndVisual returns a struct with the current show and visual
+func (api *API) getCurrentShowAndVisual() mapper.CurrentShowAndVisualJSON {
 	show, visual := api.shows.GetCurrentVisual()
-
-	if show != nil {
-		data.Show = &show.ID
-	}
-
-	if visual != nil {
-		data.Visual = &visual.ID
-	}
-
-	return &data
+	return mapper.MapCurrent(show, visual)
 }

@@ -30,6 +30,7 @@ func (api *API) handleConfig(w http.ResponseWriter, r *http.Request) {
 		data := format{
 			Parts:   api.hw.Led.GetParts(),
 			Effects: effects.GetEffects(),
+			Features: make([]string, 0),
 		}
 
 		if api.hw.System.EthernetConfig().Mode != hardware.EthUnmanaged {
@@ -38,6 +39,6 @@ func (api *API) handleConfig(w http.ResponseWriter, r *http.Request) {
 
 		utils.WriteJSON(&w, data)
 	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		utils.WriteMethodNotAllowed(&w)
 	}
 }
