@@ -33,6 +33,9 @@ func NewParameter(key string, datatype string, name string) *Parameter {
 	if datatype == Color {
 		parameter.cur = NewColor()
 		parameter.def = NewColor()
+	} else if datatype == Percent {
+		parameter.cur = NewPercent()
+		parameter.def = NewPercent()
 	} else {
 		return nil
 	}

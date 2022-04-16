@@ -1,5 +1,6 @@
 Fixes
 
+* Replace SingleColor effect with Blink effect
 * Check that part is only used in one group
 * API to restore parameter defaults
 * Network: DHCP client and server

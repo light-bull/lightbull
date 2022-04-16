@@ -28,7 +28,7 @@ func NewColor() *ColorType {
 
 // Type returns "color"
 func (c *ColorType) Type() string {
-	return "color"
+	return Color
 }
 
 // Get the color
@@ -37,8 +37,9 @@ func (c *ColorType) Get() interface{} {
 }
 
 // Set the color
-func (c *ColorType) Set(new interface{}) {
+func (c *ColorType) Set(new interface{}) error {
 	c.value = new.(color.NRGBA)
+	return nil
 }
 
 // MarshalJSON returns the data serialized as JSON

@@ -9,7 +9,7 @@ type DataType interface {
 	Get() interface{}
 
 	// Set the data
-	Set(interface{})
+	Set(interface{}) error
 
 	// MarshalJSON returns the data serialized as JSON (it implements the `json.Marshaller` interface)
 	MarshalJSON() ([]byte, error)

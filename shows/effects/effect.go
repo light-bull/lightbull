@@ -27,6 +27,8 @@ type Effect interface {
 func NewEffect(effecttype string) Effect {
 	if effecttype == SingleColor {
 		return NewSingleColorEffect()
+	} else if effecttype == Blink {
+		return NewBlinkEffect()
 	}
 	return nil
 }
