@@ -140,6 +140,14 @@ func (led *LED) SetColor(part string, pos int, r byte, g byte, b byte) {
 	led.image.SetNRGBA(ledID, 0, color.NRGBA{R: r, G: g, B: b, A: 255})
 }
 
+// GetColor returns the color of one pixel
+func (led *LED) GetColor(part string, pos int) (r byte, g byte, b byte) {
+	ledID := led.mapLedPartPos(part, pos)
+
+	color := led.image.NRGBAAt(ledID, 0)
+	return color.R, color.G, color.B
+}
+
 // SetColorPart sets the color for a whole part. UpdateColors needs to be called to make the changes visible
 func (led *LED) SetColorPart(part string, r byte, g byte, b byte) {
 	for i := 0; i < led.GetNumLeds(part); i++ {

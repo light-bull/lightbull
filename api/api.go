@@ -49,6 +49,7 @@ func New(hw *hardware.Hardware, shows *shows.ShowCollection, eventhub *events.Ev
 	api.initConfig(router)
 	api.initSystem(router)
 	api.initShows(router)
+	api.initSimulator(router)
 	api.initWS(router)
 
 	// Frontend
