@@ -31,6 +31,8 @@ func NewEffect(effecttype string) Effect {
 		return NewBlinkEffect()
 	} else if effecttype == Stripes {
 		return NewStripesEffect()
+	} else if effecttype == Rainbow {
+		return NewRainbowEffect()
 	}
 	return nil
 }

@@ -9,6 +9,9 @@ const (
 
 	// Stripes is the stripes effect
 	Stripes = "stripes"
+
+	// Rainbow is a rainbow effect
+	Rainbow = "rainbow"
 )
 
 var effectNames map[string]string
@@ -22,6 +25,7 @@ func GetEffects() map[string]string {
 		effectNames[SingleColor] = NewEffect(SingleColor).Name()
 		effectNames[Blink] = NewEffect(Blink).Name()
 		effectNames[Stripes] = NewEffect(Stripes).Name()
+		effectNames[Rainbow] = NewEffect(Rainbow).Name()
 	}
 
 	return effectNames
