@@ -44,9 +44,8 @@ func (e *BlinkEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds 
 	ratio := e.ratio.Get().(int)
 
 	// length of one on-off cycle
-	// TODO: move to config and implement map function in utils
-	interval := 5000000000 - (4900000000 * int64(speed) / 100)
-	intervalOn := (interval * int64(ratio)) / 100
+	interval := mapPercent(int64(100000000), 5000000000, speed)
+	intervalOn := mapPercent(0, interval, ratio)
 
 	// get time since last start of on-off cycle
 	e.nsSinceLastStart = (e.nsSinceLastStart + nanoseconds) % interval
@@ -60,7 +59,7 @@ func (e *BlinkEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds 
 	}
 
 	for _, part := range parts {
-		hw.Led.SetColorPart(part, r, g, b)
+		hw.Led.SetColorAllPart(part, r, g, b)
 	}
 }
 

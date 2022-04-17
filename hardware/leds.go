@@ -124,7 +124,25 @@ func (led *LED) GetNumLeds(part string) int {
 	return len(ledIDs)
 }
 
-// SetColor sets the color for one pixel. UpdateColors needs to be called to make the changes visible
+// GetNumLedsMultiPart returns the number of leds of all specified parts
+func (led *LED) GetNumLedsMultiPart(parts []string) int {
+	numLeds := 0
+	for _, part := range parts {
+		numLeds += led.GetNumLeds(part)
+	}
+	return numLeds
+}
+
+// GetColor returns the color of one pixel
+func (led *LED) GetColor(part string, pos int) (r byte, g byte, b byte) {
+	ledID := led.mapLedPartPos(part, pos)
+
+	color := led.image.NRGBAAt(ledID, 0)
+	return color.R, color.G, color.B
+}
+
+// SetColor sets the color for one pixel. UpdateColors needs to be called to make the changes visible.
+// It is NOT validated it the position is valid. See SetColorMultiPart if you need this.
 func (led *LED) SetColor(part string, pos int, r byte, g byte, b byte) {
 	ledID := led.mapLedPartPos(part, pos)
 
@@ -140,31 +158,53 @@ func (led *LED) SetColor(part string, pos int, r byte, g byte, b byte) {
 	led.image.SetNRGBA(ledID, 0, color.NRGBA{R: r, G: g, B: b, A: 255})
 }
 
-// GetColor returns the color of one pixel
-func (led *LED) GetColor(part string, pos int) (r byte, g byte, b byte) {
-	ledID := led.mapLedPartPos(part, pos)
+// SetColorMultiPart sets the color in a LED strip that may consist of multiple parts.
+// It validates that the position is in range and also supports overflows.
+// If wrap is set, positions outside the range are mapped to the correct position (wrap around).
+// If wrap is not set, invalid positions are just ignored.
+func (led *LED) SetColorMultiPart(parts []string, pos int, r byte, g byte, b byte, wrap bool) {
+	// validate that pos is in range, wrap around or abort (depending on wrap parameter)
+	numLeds := led.GetNumLedsMultiPart(parts)
+	if pos < 0 || pos >= numLeds {
+		if !wrap {
+			return
+		}
+		// normalize to correct range
+		// modulo does not handle negative numbers in the way we need it, so make the number positive first
+		for pos < 0 {
+			pos += numLeds
+		}
+		pos = pos % numLeds
+	}
 
-	color := led.image.NRGBAAt(ledID, 0)
-	return color.R, color.G, color.B
-}
+	// now find the part where this position belongs to
+	for _, part := range parts {
+		if pos < led.GetNumLeds(part) {
+			led.SetColor(part, pos, r, g, b)
+			return
+		}
 
-// SetColorPart sets the color for a whole part. UpdateColors needs to be called to make the changes visible
-func (led *LED) SetColorPart(part string, r byte, g byte, b byte) {
-	for i := 0; i < led.GetNumLeds(part); i++ {
-		led.SetColor(part, i, r, g, b)
+		pos -= led.GetNumLeds(part)
 	}
 }
 
 // SetColorAll sets the color for all defined LEDs. UpdateColors needs to be called to make the changes visible
 func (led *LED) SetColorAll(r byte, g byte, b byte) {
 	for _, part := range led.GetParts() {
-		led.SetColorPart(part, r, g, b)
+		led.SetColorAllPart(part, r, g, b)
+	}
+}
+
+// SetColorAllPart sets the color for a whole part. UpdateColors needs to be called to make the changes visible
+func (led *LED) SetColorAllPart(part string, r byte, g byte, b byte) {
+	for i := 0; i < led.GetNumLeds(part); i++ {
+		led.SetColor(part, i, r, g, b)
 	}
 }
 
 // Update makes color changes visible
 func (led *LED) Update() error {
-	if led.apa102Dummy == true && led.drawDummy == false {
+	if led.apa102Dummy && !led.drawDummy {
 		return nil
 	}
 

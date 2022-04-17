@@ -6,6 +6,9 @@ const (
 
 	// Blink is the blink effect
 	Blink = "blink"
+
+	// Stripes is the stripes effect
+	Stripes = "stripes"
 )
 
 var effectNames map[string]string
@@ -18,6 +21,7 @@ func GetEffects() map[string]string {
 
 		effectNames[SingleColor] = NewEffect(SingleColor).Name()
 		effectNames[Blink] = NewEffect(Blink).Name()
+		effectNames[Stripes] = NewEffect(Stripes).Name()
 	}
 
 	return effectNames

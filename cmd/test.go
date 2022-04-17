@@ -53,7 +53,7 @@ var testCmd = &cobra.Command{
 		for _, part := range hardware.Led.GetParts() {
 			fmt.Println("Settings color of", part, "to red")
 			hardware.Led.SetColorAll(0, 0, 0)
-			hardware.Led.SetColorPart(part, 255, 0, 0)
+			hardware.Led.SetColorAllPart(part, 255, 0, 0)
 			hardware.Update()
 			time.Sleep(1000000000 * 5)
 		}

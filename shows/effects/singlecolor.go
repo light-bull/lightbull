@@ -36,7 +36,7 @@ func (e *SingleColorEffect) Update(hw *hardware.Hardware, parts []string, nanose
 	color := e.color.Get().(color.NRGBA)
 
 	for _, part := range parts {
-		hw.Led.SetColorPart(part, color.R, color.G, color.B)
+		hw.Led.SetColorAllPart(part, color.R, color.G, color.B)
 	}
 }
 

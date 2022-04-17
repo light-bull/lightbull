@@ -4,6 +4,9 @@ const (
 	// Color is the color datatype
 	Color = "color"
 
-	// Percent is a datatype for 0 - 100%
+	// Percent is the datatype for 0 - 100%
 	Percent = "percent"
+
+	// IntegerGreaterZero is the datatype for integers greater than 0
+	IntegerGreaterZero = "integergreaterzero"
 )
