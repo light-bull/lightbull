@@ -9,9 +9,10 @@ import (
 
 // BlinkEffect is a effect that lets the LEDs blink in one color
 type BlinkEffect struct {
-	color *parameters.Parameter
-	speed *parameters.Parameter
-	ratio *parameters.Parameter
+	color_primary   *parameters.Parameter
+	color_secondary *parameters.Parameter
+	speed           *parameters.Parameter
+	ratio           *parameters.Parameter
 
 	nsSinceLastStart int64
 }
@@ -20,7 +21,8 @@ type BlinkEffect struct {
 func NewBlinkEffect() *BlinkEffect {
 	blink := BlinkEffect{}
 
-	blink.color = parameters.NewParameter("color", parameters.Color, "Color")
+	blink.color_primary = parameters.NewParameter("color_primary", parameters.Color, "Primary color")
+	blink.color_secondary = parameters.NewParameter("color_secondary", parameters.Color, "Secondary color")
 	blink.speed = parameters.NewParameter("speed", parameters.Percent, "Speed")
 	blink.ratio = parameters.NewParameter("ratio", parameters.Percent, "Ratio")
 
@@ -39,7 +41,8 @@ func (e *BlinkEffect) Name() string {
 
 // Update decides about the changes that are caused by the effect for a certain timestep.
 func (e *BlinkEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds int64) {
-	color := e.color.Get().(color.NRGBA)
+	color_primary := e.color_primary.Get().(color.NRGBA)
+	color_secondary := e.color_secondary.Get().(color.NRGBA)
 	speed := e.speed.Get().(int)
 	ratio := e.ratio.Get().(int)
 
@@ -53,9 +56,13 @@ func (e *BlinkEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds 
 	// turn on or off
 	var r, g, b byte = 0, 0, 0
 	if e.nsSinceLastStart < intervalOn {
-		r = color.R
-		g = color.G
-		b = color.B
+		r = color_primary.R
+		g = color_primary.G
+		b = color_primary.B
+	} else {
+		r = color_secondary.R
+		g = color_secondary.G
+		b = color_secondary.B
 	}
 
 	for _, part := range parts {
@@ -66,9 +73,10 @@ func (e *BlinkEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds 
 // Parameters returns the list of paremeters
 func (e *BlinkEffect) Parameters() []*parameters.Parameter {
 	// todo: maybe only once?
-	data := make([]*parameters.Parameter, 3)
-	data[0] = e.color
-	data[1] = e.speed
-	data[2] = e.ratio
+	data := make([]*parameters.Parameter, 4)
+	data[0] = e.color_primary
+	data[1] = e.color_secondary
+	data[2] = e.speed
+	data[3] = e.ratio
 	return data
 }

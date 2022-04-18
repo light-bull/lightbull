@@ -80,7 +80,7 @@ func (effectjson *EffectJSON) UnmarshalJSON(data []byte) error {
 	// we know the type, so just create the corresponding effect
 	effect := NewEffect(dataMap.Type)
 	if effect == nil {
-		return errors.New("Invalid effect type")
+		return errors.New("invalid effect type")
 	}
 
 	// use the key to lookup the parameter in the effect. then call unmarshal on the parameter with the concrete datatypes
@@ -96,7 +96,6 @@ func (effectjson *EffectJSON) UnmarshalJSON(data []byte) error {
 		}
 
 		// search for parameter
-		// TODO: optimize to not use for loop here?
 		for _, parameter := range effect.Parameters() {
 			if parameter.Key == parameterMap.Key {
 				err = parameter.UnmarshalJSON(*parameterRaw)
