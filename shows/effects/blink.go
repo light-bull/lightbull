@@ -47,7 +47,7 @@ func (e *BlinkEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds 
 	ratio := e.ratio.Get().(int)
 
 	// length of one on-off cycle
-	interval := mapPercent(int64(100000000), 5000000000, speed)
+	interval := mapPercent(int64(5000000000), 100000000, speed)
 	intervalOn := mapPercent(0, interval, ratio)
 
 	// get time since last start of on-off cycle
