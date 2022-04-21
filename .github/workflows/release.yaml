@@ -19,7 +19,7 @@ jobs:
       id: get_version
       run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
     - name: Create release
-    - uses: ncipollo/release-action@v1
+      uses: ncipollo/release-action@v1
       with:
         generateReleaseNotes: true
         artifacts: "build/*"
