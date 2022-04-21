@@ -151,11 +151,13 @@ func (system *System) SetEthernetConfig(c EthernetConfig) error {
 		}
 
 		// check dns (optional)
-		parsedDNS := net.ParseIP(c.DNS)
-		if parsedDNS == nil {
-			return errors.New("Ethernet configuration has invalid DNS server")
+		if c.DNS != "" {
+			parsedDNS := net.ParseIP(c.DNS)
+			if parsedDNS == nil {
+				return errors.New("Ethernet configuration has invalid DNS server")
+			}
+			newDNS = parsedDNS
 		}
-		newDNS = parsedDNS
 	}
 
 	// TODO
@@ -205,6 +207,7 @@ func (system *System) reconfigureEthernet() {
 	system.ethMux.Lock()
 
 	var err error
+
 	// TODO: stop running dhcp server or client
 
 	// flush the ip addresses
@@ -287,6 +290,7 @@ func (system *System) loadEthernetConfig() error {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Print("Failed to read ethernet configuration from config file: " + err.Error())
+		system.ethMux.Unlock()
 		return err
 	}
 
@@ -294,6 +298,7 @@ func (system *System) loadEthernetConfig() error {
 	err = json.Unmarshal(data, &config)
 	if err != nil {
 		log.Print("Malformed ethernet configuration in config file")
+		system.ethMux.Unlock()
 		return err
 	}
 
