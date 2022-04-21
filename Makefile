@@ -1,6 +1,6 @@
 TARGET=lightbull
 
-all: build-x64-linux< build-armv7-linux
+all: build-x64-linux build-armv7-linux
 
 prepare:
 	mkdir -p ./build
