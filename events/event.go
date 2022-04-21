@@ -41,6 +41,9 @@ const (
 	// ParameterDefaultChanged is the event topic when at least the default value of a parameter was changed. This can also include a change of the current value.
 	ParameterDefaultChanged = "parameter_default_changed"
 
+	// ParameterLinksChanged is the event topic when the links of a parameter changed
+	ParameterLinksChanged = "parameter_links_changed"
+
 	// CurrentChanged is the event topic when the current show or visual were changed
 	CurrentChanged = "current_changed"
 )

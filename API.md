@@ -109,6 +109,18 @@ It's possible to set only "parts" or "effect".
 
 The current and default value can also be set in the same request.
 
+### Link parameter
+
+    curl -H "Authorization: Bearer ${jwt}" -X POST -d '{"linkedParameter":"e8a6b7c4-d2fe-4701-9d73-fe2e8377d0fb"}' 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf/links'
+
+It does not make a differenct if link is called on parameter 1 or 2.
+
+### Unlink parameter
+
+    curl -H "Authorization: Bearer ${jwt}" -X DELETE 'http://localhost:8080/api/parameters/53d84761-d08f-4ef5-8ec2-5692d9a1a8cf/links/e8a6b7c4-d2fe-4701-9d73-fe2e8377d0fb'
+
+It does not make a differenct if unlink is called on parameter 1 or 2.
+
 ### Restore default
 
     TODO

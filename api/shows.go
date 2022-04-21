@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/light-bull/lightbull/api/mapper"
 	"github.com/light-bull/lightbull/api/utils"
@@ -22,6 +23,8 @@ func (api *API) initShows(router *mux.Router) {
 	router.HandleFunc("/api/groups/{id}", api.handleGroupDetails)
 
 	router.HandleFunc("/api/parameters/{id}", api.handleParameterDetails)
+	router.HandleFunc("/api/parameters/{id}/links", api.handleParameterLinks)
+	router.HandleFunc("/api/parameters/{id}/links/{linkedId}", api.handleParameterLinks)
 
 	router.HandleFunc("/api/current", api.handleCurrent)
 }
@@ -345,6 +348,90 @@ func (api *API) handleParameterDetails(w http.ResponseWriter, r *http.Request) {
 		}
 
 		api.eventhub.PublishNew(eventTopic, parameter, show, utils.GetConnectionID(r))
+	} else {
+		utils.WriteMethodNotAllowed(&w)
+	}
+}
+
+func (api *API) handleParameterLinks(w http.ResponseWriter, r *http.Request) {
+	if !api.authenticate(&w, r) {
+		return
+	}
+	utils.EnableCors(&w)
+
+	// get first parameter
+	vars := mux.Vars(r)
+	id := vars["id"]
+	linkedId, linkedIdFound := vars["linkedId"]
+
+	show, visual1, _, parameter1 := api.shows.FindParameter(id)
+	if parameter1 == nil {
+		utils.WriteError(&w, "Invalid or unknown ID", http.StatusNotFound)
+		return
+	}
+
+	if r.Method == "POST" {
+		// we do not accept the linked id in the url here, this is only allowed for DELETE
+		if linkedIdFound {
+			w.WriteHeader(http.StatusNotFound)
+		}
+
+		// get data from request
+		type format struct {
+			LinkedParameter uuid.UUID `json:"linkedParameter"`
+		}
+		data := format{}
+		err := utils.ParseJSON(&w, r, &data)
+		if err != nil {
+			return
+		}
+
+		// get second parameter
+		_, visual2, _, parameter2 := api.shows.FindParameter(data.LinkedParameter.String())
+		if parameter2 == nil {
+			utils.WriteError(&w, "Invalid or unknown ID for linked parameter", http.StatusBadRequest)
+			return
+		}
+
+		// validate that parameters belong to same visual
+		if visual1.ID != visual2.ID {
+			utils.WriteError(&w, "Parameters must belong to same visual", http.StatusBadRequest)
+			return
+		}
+
+		err = visual1.LinkParameter(parameter1, parameter2)
+		if err != nil {
+			utils.WriteError(&w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// publish changes on both parameters
+		api.eventhub.PublishNew(events.ParameterLinksChanged, parameter1, show, utils.GetConnectionID(r))
+		api.eventhub.PublishNew(events.ParameterLinksChanged, parameter2, show, utils.GetConnectionID(r))
+		w.WriteHeader(http.StatusOK)
+	} else if r.Method == "DELETE" {
+		// we need the linkedId from the URL
+		if !linkedIdFound {
+			w.WriteHeader(http.StatusNotFound)
+		}
+
+		// get second parameter
+		_, _, _, parameter2 := api.shows.FindParameter(linkedId)
+		if parameter2 == nil {
+			utils.WriteError(&w, "Invalid or unknown ID for linked parameter", http.StatusBadRequest)
+			return
+		}
+
+		err := visual1.UnlinkParameter(parameter1, parameter2)
+		if err != nil {
+			utils.WriteError(&w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// publish changes on both parameters
+		api.eventhub.PublishNew(events.ParameterLinksChanged, parameter1, show, utils.GetConnectionID(r))
+		api.eventhub.PublishNew(events.ParameterLinksChanged, parameter2, show, utils.GetConnectionID(r))
+		w.WriteHeader(http.StatusOK)
 	} else {
 		utils.WriteMethodNotAllowed(&w)
 	}

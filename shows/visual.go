@@ -2,10 +2,13 @@ package shows
 
 import (
 	"encoding/json"
+	"errors"
+	"reflect"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/light-bull/lightbull/hardware"
+	"github.com/light-bull/lightbull/shows/parameters"
 )
 
 // Visual is a collection of effects that are applied to LED parts and bundled parameters.
@@ -16,9 +19,6 @@ type Visual struct {
 	groups []*Group
 
 	mux sync.Mutex
-
-	// TODO: bundledParameters []parameters.BundledParameter
-
 }
 
 // showJSON is the format for a serialized JSON configuration
@@ -96,4 +96,53 @@ func (visual *Visual) Update(hw *hardware.Hardware, nanoseconds int64) {
 	for _, group := range visual.groups {
 		group.Update(hw, nanoseconds)
 	}
+}
+
+// FindParameter returns the parameter with the given ID and the belonging group or nil for malformed and non-existing IDs
+func (visual *Visual) FindParameter(id uuid.UUID) (*Group, *parameters.Parameter) {
+	visual.mux.Lock()
+	defer visual.mux.Unlock()
+
+	// iterate over shows, visuals and groups
+	for _, group := range visual.Groups() {
+		for _, parameter := range group.Effect.Parameters() {
+			if parameter.ID == id {
+				return group, parameter
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+// LinkParameter creates a link between two parameters
+func (visual *Visual) LinkParameter(parameter1 *parameters.Parameter, parameter2 *parameters.Parameter) error {
+	if reflect.TypeOf(parameter1.Get()) != reflect.TypeOf(parameter2.Get()) {
+		return errors.New("cannot create link between parameters of different type")
+	}
+
+	if parameter1.ID == parameter2.ID {
+		return errors.New("cannot create link between identical parameters")
+	}
+
+	// TODO: check that parameters belong to same visual
+
+	visual.mux.Lock()
+	defer visual.mux.Unlock()
+
+	parameter1.AddLink(parameter2)
+	parameter2.AddLink(parameter1)
+
+	return nil
+}
+
+// UnlinkParameter deletes a link between two parameters
+func (visual *Visual) UnlinkParameter(parameter1 *parameters.Parameter, parameter2 *parameters.Parameter) error {
+	visual.mux.Lock()
+	defer visual.mux.Unlock()
+
+	parameter1.DeleteLink(parameter2)
+	parameter2.DeleteLink(parameter1)
+
+	return nil
 }
