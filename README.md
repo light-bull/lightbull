@@ -2,7 +2,7 @@
 
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/light-bull/lightbull/Build/main?style=plastic)
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/light-bull/lightbull/main?style=plastic)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/light-bull/lightbull)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/light-bull/lightbull?style=plastic)
 
 ## Build
 
