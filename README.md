@@ -1,6 +1,8 @@
 # lightbull
 
-[![Build](https://github.com/light-bull/lightbull/actions/workflows/build.yaml/badge.svg?branch=main)](https://github.com/light-bull/lightbull/actions/workflows/build.yaml)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/light-bull/lightbull/Build/main?style=plastic)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/light-bull/lightbull/main?style=plastic)
+
 
 ## Build
 
