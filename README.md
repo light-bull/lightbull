@@ -10,11 +10,10 @@ Just use `make`.
 
 The binaries are put into the `build` directory.
 
-| File                  | Platform              |
-|-----------------------|-----------------------|
-| lightbull-x64-linux   | Obviously             |
-| lightbull-armv7-linux | Raspberry Pi 3        |
-| lightbull-armv5-linux | Older Raspberry Pis   |
+| File                  | Platform       |
+|-----------------------|----------------|
+| lightbull-x64-linux   | Obvious        |
+| lightbull-armv7-linux | Raspberry Pi 3 |
 
 ## Customize LEDs
 
