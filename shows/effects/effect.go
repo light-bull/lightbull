@@ -19,7 +19,7 @@ type Effect interface {
 	// Update decides about the changes that are caused by the effect for a certain timestep.
 	Update(hw *hardware.Hardware, parts []string, nanoseconds int64)
 
-	// Parameters returns the list of paremeters
+	// Parameters returns the list of parameters
 	Parameters() []*parameters.Parameter
 }
 

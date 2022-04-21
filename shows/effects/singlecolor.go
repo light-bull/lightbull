@@ -42,7 +42,6 @@ func (e *SingleColorEffect) Update(hw *hardware.Hardware, parts []string, nanose
 
 // Parameters returns the list of paremeters
 func (e *SingleColorEffect) Parameters() []*parameters.Parameter {
-	// todo: maybe only once?
 	data := make([]*parameters.Parameter, 1)
 	data[0] = e.color
 	return data
