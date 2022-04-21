@@ -9,11 +9,11 @@ import (
 
 // StripesEffect is a effect that draws moving stripes in one color
 type StripesEffect struct {
-	color_primary   *parameters.Parameter
-	color_secondary *parameters.Parameter
-	speed           *parameters.Parameter
-	length          *parameters.Parameter
-	gap             *parameters.Parameter
+	colorPrimary   *parameters.Parameter
+	colorSecondary *parameters.Parameter
+	speed          *parameters.Parameter
+	length         *parameters.Parameter
+	gap            *parameters.Parameter
 
 	currentPosition float64
 }
@@ -22,8 +22,8 @@ type StripesEffect struct {
 func NewStripesEffect() *StripesEffect {
 	blink := StripesEffect{}
 
-	blink.color_primary = parameters.NewParameter("color_primary", parameters.Color, "Primary color")
-	blink.color_secondary = parameters.NewParameter("color_secondary", parameters.Color, "Secondary color")
+	blink.colorPrimary = parameters.NewParameter("colorPrimary", parameters.Color, "Primary color")
+	blink.colorSecondary = parameters.NewParameter("colorSecondary", parameters.Color, "Secondary color")
 	blink.speed = parameters.NewParameter("speed", parameters.Percent, "Speed")
 	blink.length = parameters.NewParameter("length", parameters.IntegerGreaterZero, "Length")
 	blink.gap = parameters.NewParameter("gap", parameters.IntegerGreaterZero, "Gap")
@@ -43,8 +43,8 @@ func (e *StripesEffect) Name() string {
 
 // Update decides about the changes that are caused by the effect for a certain timestep.
 func (e *StripesEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds int64) {
-	color_primary := e.color_primary.Get().(color.NRGBA)
-	color_secondary := e.color_secondary.Get().(color.NRGBA)
+	colorPrimary := e.colorPrimary.Get().(color.NRGBA)
+	colorSecondary := e.colorSecondary.Get().(color.NRGBA)
 	speed := e.speed.Get().(int)
 	length := e.length.Get().(int)
 	gap := e.gap.Get().(int)
@@ -56,9 +56,9 @@ func (e *StripesEffect) Update(hw *hardware.Hardware, parts []string, nanosecond
 	// draw beginning from current position (we use the wrap around here)
 	for i := 0; i < numLeds; i++ {
 		if i%(length+gap) < length {
-			hw.Led.SetColorMultiPart(parts, pos+i, color_primary.R, color_primary.G, color_primary.B, true)
+			hw.Led.SetColorMultiPart(parts, pos+i, colorPrimary.R, colorPrimary.G, colorPrimary.B, true)
 		} else {
-			hw.Led.SetColorMultiPart(parts, pos+i, color_secondary.R, color_secondary.G, color_secondary.B, true)
+			hw.Led.SetColorMultiPart(parts, pos+i, colorSecondary.R, colorSecondary.G, colorSecondary.B, true)
 		}
 	}
 }
@@ -67,8 +67,8 @@ func (e *StripesEffect) Update(hw *hardware.Hardware, parts []string, nanosecond
 func (e *StripesEffect) Parameters() []*parameters.Parameter {
 	// todo: maybe only once?
 	data := make([]*parameters.Parameter, 5)
-	data[0] = e.color_primary
-	data[1] = e.color_secondary
+	data[0] = e.colorPrimary
+	data[1] = e.colorSecondary
 	data[2] = e.speed
 	data[3] = e.length
 	data[4] = e.gap
