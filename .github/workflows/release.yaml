@@ -15,8 +15,11 @@ jobs:
         go-version: '>=1.18.0'
     - name: Build go
       run: make
-    - name: Get the version
+    - name: Determine version
       id: get_version
       run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
-    - name: Print version
-      run: echo ${{ steps.get_version.outputs.version }}
+    - name: Create release
+    - uses: ncipollo/release-action@v1
+      with:
+        generateReleaseNotes: true
+        artifacts: "build/*"
