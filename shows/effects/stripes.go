@@ -70,7 +70,6 @@ func (e *StripesEffect) Update(hw *hardware.Hardware, parts []string, nanosecond
 
 // Parameters returns the list of paremeters
 func (e *StripesEffect) Parameters() []*parameters.Parameter {
-	// todo: maybe only once?
 	data := make([]*parameters.Parameter, 6)
 	data[0] = e.colorPrimary
 	data[1] = e.colorSecondary
