@@ -17,7 +17,7 @@ type Parameter struct {
 	// Name is the nice name for the UI
 	Name string
 
-	// current and default value of paramter, they have to be the same DataType
+	// current and default value of parameter, they have to be the same DataType
 	cur DataType
 	def DataType
 }
@@ -39,6 +39,9 @@ func NewParameter(key string, datatype string, name string) *Parameter {
 	} else if datatype == IntegerGreaterZero {
 		parameter.cur = NewIntegerGreaterZero()
 		parameter.def = NewIntegerGreaterZero()
+	} else if datatype == Boolean {
+		parameter.cur = NewBooleanType()
+		parameter.def = NewBooleanType()
 	} else {
 		return nil
 	}

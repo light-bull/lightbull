@@ -9,4 +9,7 @@ const (
 
 	// IntegerGreaterZero is the datatype for integers greater than 0
 	IntegerGreaterZero = "integergreaterzero"
+
+	// Boolean is the boolean datatype
+	Boolean = "boolean"
 )
