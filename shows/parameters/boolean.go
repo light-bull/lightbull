@@ -44,7 +44,7 @@ func (c *BooleanType) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON loads the data from the JSON string
 func (c *BooleanType) UnmarshalJSON(data []byte) error {
-	var input int
+	var input bool
 
 	err := json.Unmarshal(data, &input)
 	if err != nil {
