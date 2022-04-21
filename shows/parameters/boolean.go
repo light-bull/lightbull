@@ -20,7 +20,7 @@ func NewBooleanType() *BooleanType {
 	return &boolean
 }
 
-// Type returns "integergreaterzero"
+// Type returns "boolean"
 func (c *BooleanType) Type() string {
 	return Boolean
 }
