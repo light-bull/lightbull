@@ -37,7 +37,7 @@ func (e *RainbowEffect) Update(hw *hardware.Hardware, parts []string, nanosecond
 
 	numLeds := hw.Led.GetNumLedsMultiPart(parts)
 	ledsPerSecond := mapPercent(0.0, 300.0, speed)
-	pos := getNextPosition(&e.currentPosition, ledsPerSecond, numLeds, nanoseconds)
+	pos := getNextPosition(&e.currentPosition, ledsPerSecond, numLeds, nanoseconds, false)
 
 	for i := 0; i < numLeds; i++ {
 		hue := (i * 360 / (numLeds - 1)) % 360

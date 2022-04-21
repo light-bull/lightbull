@@ -4,14 +4,31 @@ import (
 	"math"
 )
 
+// modulo implements math.Mod with proper negative number support
+func moduloFloat64(x, y float64) float64 {
+	for x < 0 {
+		x += y
+	}
+	return math.Mod(x, y)
+}
+
+// getDirectionFactor returns a factor that can be multiplied with a position offset so that is either reversed
+// (negative direction) or not
+func getDirectionFactor(reversed bool) int {
+	if reversed {
+		return -1
+	}
+	return 1
+}
+
 // getNextPosition calculates the next position of a point on the LED strip for constant movements
 // It updates the position parameter and returns the current position as integer.
 // We calculate based on floats to have a better precision.
-func getNextPosition(position *float64, ledsPerSecond float64, numberLeds int, nanoseconds int64) int {
-	*position = *position + ((ledsPerSecond * float64(nanoseconds)) / 1000000000.0)
+func getNextPosition(position *float64, ledsPerSecond float64, numberLeds int, nanoseconds int64, reversed bool) int {
+	*position = *position + float64(getDirectionFactor(reversed))*((ledsPerSecond*float64(nanoseconds))/1000000000.0)
 
 	// normalize to 0 <= pos < number_leds
-	*position = math.Mod(*position, float64(numberLeds))
+	*position = moduloFloat64(*position, float64(numberLeds))
 
 	// return the current led as int
 	return int(*position)
