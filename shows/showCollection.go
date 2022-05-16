@@ -211,12 +211,9 @@ func (showCollection *ShowCollection) FindParameter(idStr string) (*Show, *Visua
 	// iterate over shows, visuals and groups
 	for _, show := range showCollection.shows {
 		for _, visual := range show.Visuals() {
-			for _, group := range visual.Groups() {
-				for _, parameter := range group.Effect.Parameters() {
-					if parameter.ID == id {
-						return show, visual, group, parameter
-					}
-				}
+			group, parameter := visual.FindParameter(id)
+			if parameter != nil {
+				return show, visual, group, parameter
 			}
 		}
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/light-bull/lightbull/hardware"
+	"github.com/light-bull/lightbull/shows/parameters"
 )
 
 // Show is a collection of visuals
@@ -60,6 +61,28 @@ func (show *Show) UnmarshalJSON(data []byte) error {
 	show.Name = input.Name
 	show.Favorite = input.Favorite
 	show.visuals = input.Visuals
+
+	// map UUIDs of linked parameters to real parameters
+	// first, collect map UUID -> Parameter
+	uuidToParameterMap := make(map[uuid.UUID]*parameters.Parameter)
+	for _, visual := range show.visuals {
+		for _, group := range visual.Groups() {
+			for _, parameter := range group.Effect.Parameters() {
+				uuidToParameterMap[(*parameter).ID] = parameter
+			}
+		}
+	}
+	// then to the update
+	for _, visual := range show.visuals {
+		for _, group := range visual.Groups() {
+			for _, parameter := range group.Effect.Parameters() {
+				err = parameter.FillLinkedParametersAfterUnmarshall(uuidToParameterMap)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
 
 	// TODO: input validation
 
