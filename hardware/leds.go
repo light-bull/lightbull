@@ -79,7 +79,7 @@ func (led *LED) Init() error {
 	} else {
 		// SPI config
 		led.spi = spiConn
-		led.spi.LimitSpeed(physic.Frequency(viper.GetInt("leds.spiMHz")) * physic.MegaHertz)
+		led.spi.LimitSpeed(physic.Frequency(viper.GetInt("leds.spiKHz")) * physic.KiloHertz)
 
 		// initialize apa102
 		opts := apa102.DefaultOpts
