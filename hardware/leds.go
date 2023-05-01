@@ -8,13 +8,13 @@ import (
 
 	"github.com/spf13/viper"
 
-	"periph.io/x/extra/devices/screen"
-	"periph.io/x/periph/conn/display"
-	"periph.io/x/periph/conn/physic"
-	"periph.io/x/periph/conn/spi"
-	"periph.io/x/periph/conn/spi/spireg"
-	"periph.io/x/periph/devices/apa102"
-	"periph.io/x/periph/host"
+	"periph.io/x/conn/v3/display"
+	"periph.io/x/conn/v3/physic"
+	"periph.io/x/conn/v3/spi"
+	"periph.io/x/conn/v3/spi/spireg"
+	"periph.io/x/devices/v3/apa102"
+	"periph.io/x/devices/v3/screen1d"
+	"periph.io/x/host/v3"
 )
 
 // LED is used to interact with the LED stripes. First, add the single parts and then run Init.
@@ -74,7 +74,8 @@ func (led *LED) Init() error {
 	spiConn, err := spireg.Open("")
 	if err != nil {
 		log.Print("Failed to find a SPI port, printing at the console:\n")
-		led.apa102 = screen.New(numLeds)
+		screenOpts := &screen1d.Opts{X: numLeds}
+		led.apa102 = screen1d.New(screenOpts)
 		led.apa102Dummy = true
 	} else {
 		// SPI config
