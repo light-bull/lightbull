@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/light-bull/lightbull/persistence"
 )
 
@@ -55,9 +55,9 @@ func NewJWTManager(persistence *persistence.Persistence) (*JWTManager, error) {
 
 // New issues a new JSON Web Token
 func (jwtmanager *JWTManager) New() (string, error) {
-	claims := &jwt.StandardClaims{
+	claims := &jwt.RegisteredClaims{
 		Issuer:    jwtIssuer,
-		ExpiresAt: time.Now().Add(jwtValidity).Unix(),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(jwtValidity)),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
@@ -78,17 +78,6 @@ func (jwtmanager *JWTManager) Check(tokenString string) bool {
 	})
 
 	if err != nil || !token.Valid {
-		return false
-	}
-
-	// get claims
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return false
-	}
-
-	// validate claims
-	if claims.Valid() != nil {
 		return false
 	}
 
