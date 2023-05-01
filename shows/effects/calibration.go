@@ -39,8 +39,8 @@ func (c *CalibrationEffect) Update(hw *hardware.Hardware, parts []string, nanose
 
 	for _, part := range parts {
 		hw.Led.SetColorAllPart(part, 0, 0, 0)
-		hw.Led.SetColor(part, ledId, primaryColor.R, primaryColor.G, primaryColor.B)
 	}
+	hw.Led.SetColorMultiPart(parts, ledId, primaryColor.R, primaryColor.G, primaryColor.B, false)
 }
 
 // Parameters returns the list of parameters
