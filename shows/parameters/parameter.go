@@ -44,7 +44,7 @@ func NewParameter(key string, datatype string, name string) *Parameter {
 	} else if datatype == Percent {
 		parameter.cur = NewPercent()
 		parameter.def = NewPercent()
-	} else if datatype == IntegerGreaterZero {
+	} else if datatype == IntegerGreaterOrEqualZero {
 		parameter.cur = NewIntegerGreaterZero()
 		parameter.def = NewIntegerGreaterZero()
 	} else if datatype == Boolean {

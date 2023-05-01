@@ -25,7 +25,9 @@ type Effect interface {
 
 // NewEffect returns a new effect of specified effect type (or nil)
 func NewEffect(effecttype string) Effect {
-	if effecttype == SingleColor {
+	if effecttype == Calibration {
+		return NewCalibrationEffect()
+	} else if effecttype == SingleColor {
 		return NewSingleColorEffect()
 	} else if effecttype == Blink {
 		return NewBlinkEffect()
