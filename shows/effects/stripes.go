@@ -26,8 +26,8 @@ func NewStripesEffect() *StripesEffect {
 	stripes.colorPrimary = parameters.NewParameter("colorPrimary", parameters.Color, "Primary color")
 	stripes.colorSecondary = parameters.NewParameter("colorSecondary", parameters.Color, "Secondary color")
 	stripes.speed = parameters.NewParameter("speed", parameters.Percent, "Speed")
-	stripes.length = parameters.NewParameter("length", parameters.IntegerGreaterZero, "Length")
-	stripes.gap = parameters.NewParameter("gap", parameters.IntegerGreaterZero, "Gap")
+	stripes.length = parameters.NewParameter("length", parameters.IntegerGreaterOrEqualZero, "Length")
+	stripes.gap = parameters.NewParameter("gap", parameters.IntegerGreaterOrEqualZero, "Gap")
 	stripes.reversed = parameters.NewParameter("reversed", parameters.Boolean, "Reversed")
 
 	return &stripes

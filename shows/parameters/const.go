@@ -7,8 +7,8 @@ const (
 	// Percent is the datatype for 0 - 100%
 	Percent = "percent"
 
-	// IntegerGreaterZero is the datatype for integers greater than 0
-	IntegerGreaterZero = "integergreaterzero"
+	// IntegerGreaterOrEqualZero is the datatype for integers greater than 0
+	IntegerGreaterOrEqualZero = "integergreaterorequalzero"
 
 	// Boolean is the boolean datatype
 	Boolean = "boolean"

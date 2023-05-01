@@ -1,6 +1,9 @@
 package effects
 
 const (
+	// Calibration is the calibration effect
+	Calibration = "calibration"
+
 	// SingleColor is the single color effect
 	SingleColor = "singlecolor"
 
@@ -22,6 +25,7 @@ func GetEffects() map[string]string {
 	if effectNames == nil {
 		effectNames = make(map[string]string)
 
+		effectNames[Calibration] = NewEffect(Calibration).Name()
 		effectNames[SingleColor] = NewEffect(SingleColor).Name()
 		effectNames[Blink] = NewEffect(Blink).Name()
 		effectNames[Stripes] = NewEffect(Stripes).Name()

@@ -70,7 +70,7 @@ func (e *BlinkEffect) Update(hw *hardware.Hardware, parts []string, nanoseconds 
 	}
 }
 
-// Parameters returns the list of paremeters
+// Parameters returns the list of parameters
 func (e *BlinkEffect) Parameters() []*parameters.Parameter {
 	data := make([]*parameters.Parameter, 4)
 	data[0] = e.colorPrimary
