@@ -25,6 +25,6 @@ leds:
         - name: "horn_right"
           leds: [[400, 468], ]
     brightnessCap: 80
-    spiKHz: 1000
+    spiKHz: 500
     fps: 25
     drawDummy: false
